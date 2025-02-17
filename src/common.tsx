@@ -1,0 +1,1 @@
+export const BASE_URL="https://email-geneartor-production.up.railway.app/api"
