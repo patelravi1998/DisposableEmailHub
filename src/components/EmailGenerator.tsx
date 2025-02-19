@@ -40,7 +40,10 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         onEmailGenerated(decryptedEmail);
       }
     } else {
-      fetchUserIP().then(generateEmail);
+      fetchUserIP().then(generateEmail).catch(error => {
+        console.error("Failed to fetch IP or generate email:", error);
+        toast.error("Failed to generate email. Please check your network connection.");
+      });
     }
   }, []);
 
@@ -75,7 +78,8 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         toast.error("Failed to generate email");
       }
     } catch (error) {
-      toast.error("Failed to generate email");
+      console.error("Email generation error:", error);
+      toast.error("Failed to generate email. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -106,9 +110,9 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
           value={currentEmail}
           readOnly
           placeholder="Your temporary email address"
-          className="flex-1 px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none"
+          className="flex-1 px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none w-full sm:w-auto"
         />
-        <div className="flex gap-2 mt-2 sm:mt-0">
+        <div className="flex gap-2 mt-2 sm:mt-0 sm:ml-2">
           <Sheet>
             <SheetTrigger>
               <button className="p-2 bg-gray-200 rounded-lg hover:bg-gray-300">
@@ -133,7 +137,10 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         </div>
       </div>
       <div className="flex justify-center gap-4 mt-4">
-        <button onClick={() => fetchUserIP().then(generateEmail)} disabled={isGenerating} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2">
+        <button onClick={() => fetchUserIP().then(generateEmail).catch(error => {
+          console.error("Failed to fetch IP or generate email:", error);
+          toast.error("Failed to generate email. Please check your network connection.");
+        })} disabled={isGenerating} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2">
           {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : "Generate"}
         </button>
         <button onClick={deleteEmail} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
