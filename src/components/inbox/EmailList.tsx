@@ -31,8 +31,10 @@ export const EmailList = () => {
 
   useEffect(() => {
     const fetchEmails = async () => {
+      console.log(`>>>>>sacveee`)
       setError(null);
       const storedIp = sessionStorage.getItem("userIp");
+      console.log(`>>>>storedIp`,storedIp)
       const encryptedEmail = sessionStorage.getItem("temporaryEmail");
 
       if (!storedIp || !encryptedEmail) {
@@ -41,10 +43,12 @@ export const EmailList = () => {
       }
 
       const temporaryEmail = decryptData(encryptedEmail); // Decrypt email before using
+      const ipaddress = decryptData(storedIp); // Decrypt email before using
+
 
       try {
         const response = await fetch(
-          `https://email-geneartor-production.up.railway.app/api/users/userMails?ipadress=${storedIp}&temporaryEmail=${temporaryEmail}`
+          `https://email-geneartor-production.up.railway.app/api/users/userMails?ipadress=${ipaddress}&temporaryEmail=${temporaryEmail}`
         );
 
         if (!response.ok) {

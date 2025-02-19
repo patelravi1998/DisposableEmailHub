@@ -74,6 +74,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
       const data = await response.json();
       const email = data.data;
       sessionStorage.setItem('temporaryEmail', encryptData(email));
+      sessionStorage.setItem('userIp', encryptData(id));
       onEmailGenerated(email);
       toast.success(`New email generated: ${email}`);
     } catch (error) {
