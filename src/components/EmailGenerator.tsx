@@ -7,7 +7,7 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescri
 import { QRCodeSVG } from 'qrcode.react';
 import CryptoJS from 'crypto-js';
 
-const SECRET_KEY = "Cusatian@12345"; // Replace with a secure key
+const SECRET_KEY = "Cusatian@12345";
 
 const encryptData = (data) => {
   return CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
@@ -35,7 +35,10 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('temporaryEmail');
     if (storedEmail) {
-      setTimeout(() => onEmailGenerated(decryptData(storedEmail)), 0);
+      const decryptedEmail = decryptData(storedEmail);
+      if (decryptedEmail) {
+        onEmailGenerated(decryptedEmail);
+      }
     } else {
       fetchUserIP().then(generateEmail);
     }
@@ -45,8 +48,6 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
     try {
       const response = await fetch('https://api64.ipify.org?format=json');
       const data = await response.json();
-      const encryptedIp = encryptData(data.ip);
-      sessionStorage.setItem('userIp', encryptedIp);
       setUserIp(data.ip);
       return data.ip;
     } catch (error) {
@@ -65,12 +66,11 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         body: JSON.stringify({ ipadress: ip })
       });
       const data = await response.json();
-      console.log(`>>>>>data${JSON.stringify(data)}`);
       if (data.status) {
-        sessionStorage.setItem('temporaryEmail', encryptData(data.data));
-        onEmailGenerated(data.data);
-        toast.success(`New email generated: ${data.data}`);
-        window.location.reload();
+        const email = data.data;
+        sessionStorage.setItem('temporaryEmail', encryptData(email));
+        onEmailGenerated(email);
+        toast.success(`New email generated: ${email}`);
       } else {
         toast.error("Failed to generate email");
       }
@@ -96,59 +96,48 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
     sessionStorage.removeItem('temporaryEmail');
     onEmailGenerated('');
     toast.success("Email address deleted!");
-    window.location.reload();
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6">
-      <div className="glass rounded-2xl mb-6 p-1.5 transition-all hover:shadow-lg hover:scale-[1.02] duration-300">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-xl">
-          <input
-            type="text"
-            value={currentEmail}
-            readOnly
-            placeholder="Your temporary email address"
-            className="flex-1 px-4 py-3 text-sm sm:text-base rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none border-b sm:border-r border-gray-100"
-          />
-          <div className="flex items-center justify-end gap-2 p-2">
-            <Sheet>
-              <SheetTrigger>
-                <button className="bg-gray-100 p-2 rounded-xl hover:bg-gray-200 transition-all">
-                  <QrCode className="w-4 h-4 sm:w-5 sm:h-5" />
-                </button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Share via QR Code</SheetTitle>
-                  <SheetDescription>
-                    Scan this code to quickly access your temporary email
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="flex justify-center items-center mt-8">
-                  <div className="glass p-4 sm:p-6 rounded-2xl premium-shadow">
-                    <QRCodeSVG
-                      value={currentEmail || ''}
-                      size={200}
-                      level="H"
-                      includeMargin={true}
-                    />
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-            <button onClick={copyEmail} disabled={!currentEmail} className="bg-blue-500 text-white px-4 py-2 text-sm rounded-xl hover:opacity-90 transition-all">
-              Copy
-            </button>
-          </div>
+    <div className="w-full max-w-lg mx-auto p-4 sm:p-6">
+      <div className="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-center">
+        <input
+          type="text"
+          value={currentEmail}
+          readOnly
+          placeholder="Your temporary email address"
+          className="flex-1 px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none"
+        />
+        <div className="flex gap-2 mt-2 sm:mt-0">
+          <Sheet>
+            <SheetTrigger>
+              <button className="p-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                <QrCode className="w-5 h-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Share via QR Code</SheetTitle>
+                <SheetDescription>
+                  Scan this code to quickly access your email
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex justify-center items-center mt-8">
+                <QRCodeSVG value={currentEmail || ''} size={200} level="H" includeMargin={true} />
+              </div>
+            </SheetContent>
+          </Sheet>
+          <button onClick={copyEmail} className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+            <Copy className="w-5 h-5" />
+          </button>
         </div>
       </div>
-      <div className="flex flex-wrap justify-center gap-4 items-center mb-6">
-        <button onClick={() => fetchUserIP().then(generateEmail)} disabled={isGenerating} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all">
+      <div className="flex justify-center gap-4 mt-4">
+        <button onClick={() => fetchUserIP().then(generateEmail)} disabled={isGenerating} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2">
           {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : "Generate"}
         </button>
-        <button onClick={deleteEmail} disabled={!currentEmail} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all">
-          <Trash2 className="w-4 h-4" />
-          Delete
+        <button onClick={deleteEmail} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+          <Trash2 className="w-5 h-5" />
         </button>
         <EmailSettings onExpirationChange={() => {}} />
       </div>
