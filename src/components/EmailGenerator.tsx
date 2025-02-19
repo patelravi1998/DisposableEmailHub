@@ -40,22 +40,28 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         onEmailGenerated(decryptedEmail);
       }
     } else {
-      fetchUserIP().then(generateEmail).catch(error => {
-        console.error("Failed to fetch IP or generate email:", error);
-        toast.error("Failed to generate email. Please check your network connection.");
-      });
+      fetchUserIP()
+        .then(generateEmail)
+        .catch((error) => {
+          console.error("Failed to fetch IP or generate email:", error);
+          toast.error("Failed to generate email. Please check your network connection.");
+        });
     }
   }, []);
 
   const fetchUserIP = async () => {
     try {
       const response = await fetch('https://api64.ipify.org?format=json');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch IP: ${response.statusText}`);
+      }
       const data = await response.json();
       setUserIp(data.ip);
       return data.ip;
     } catch (error) {
       console.error("Failed to fetch IP address:", error);
-      return '0.0.0.0';
+      toast.error("Failed to fetch your IP address. Using a default IP.");
+      return '0.0.0.0'; // Fallback IP
     }
   };
 
@@ -66,20 +72,21 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
       const response = await fetch(`${BASE_URL}/users/generateEmail`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ipadress: ip })
+        body: JSON.stringify({ ipadress: ip }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate email: ${response.statusText}`);
+      }
+
       const data = await response.json();
-      // if (data.status) {
-        const email = data.data;
-        sessionStorage.setItem('temporaryEmail', encryptData(email));
-        onEmailGenerated(email);
-        toast.success(`New email generated: ${email}`);
-      // } else {
-      //   toast.error("Failed to generate email");
-      // }
+      const email = data.data;
+      sessionStorage.setItem('temporaryEmail', encryptData(email));
+      onEmailGenerated(email);
+      toast.success(`New email generated: ${email}`);
     } catch (error) {
       console.error("Email generation error:", error);
-      toast.error("Failed to generate email. Please try again.",error);
+      toast.error(`Failed to generate email. Please try again. Error: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
@@ -137,10 +144,18 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         </div>
       </div>
       <div className="flex justify-center gap-4 mt-4">
-        <button onClick={() => fetchUserIP().then(generateEmail).catch(error => {
-          console.error("Failed to fetch IP or generate email:", error);
-          toast.error("Failed to generate email. Please check your network connection.");
-        })} disabled={isGenerating} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2">
+        <button
+          onClick={() =>
+            fetchUserIP()
+              .then(generateEmail)
+              .catch((error) => {
+                console.error("Failed to fetch IP or generate email:", error);
+                toast.error("Failed to generate email. Please check your network connection.");
+              })
+          }
+          disabled={isGenerating}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+        >
           {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : "Generate"}
         </button>
         <button onClick={deleteEmail} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
