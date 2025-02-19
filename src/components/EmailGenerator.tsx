@@ -69,14 +69,14 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         body: JSON.stringify({ ipadress: ip })
       });
       const data = await response.json();
-      if (data.status) {
+      // if (data.status) {
         const email = data.data;
         sessionStorage.setItem('temporaryEmail', encryptData(email));
         onEmailGenerated(email);
         toast.success(`New email generated: ${email}`);
-      } else {
-        toast.error("Failed to generate email");
-      }
+      // } else {
+      //   toast.error("Failed to generate email");
+      // }
     } catch (error) {
       console.error("Email generation error:", error);
       toast.error("Failed to generate email. Please try again.");
