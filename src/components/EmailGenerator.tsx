@@ -6,14 +6,15 @@ import { BASE_URL } from '../common';
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { QRCodeSVG } from 'qrcode.react';
 import CryptoJS from 'crypto-js';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 const SECRET_KEY = "Cusatian@12345";
 
-const encryptData = (data) => {
+const encryptData = (data: string) => {
   return CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
 };
 
-const decryptData = (ciphertext) => {
+const decryptData = (ciphertext: string) => {
   try {
     const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
     return bytes.toString(CryptoJS.enc.Utf8);
@@ -30,7 +31,7 @@ interface EmailGeneratorProps {
 
 export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [userIp, setUserIp] = useState('');
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('temporaryEmail');
@@ -40,39 +41,30 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         onEmailGenerated(decryptedEmail);
       }
     } else {
-      fetchUserIP()
-        .then(generateEmail)
-        .catch((error) => {
-          console.error("Failed to fetch IP or generate email:", error);
-          toast.error("Failed to generate email. Please check your network connection.");
-        });
+      fetchUserId().then(generateEmail);
     }
   }, []);
 
-  const fetchUserIP = async () => {
+  const fetchUserId = async () => {
     try {
-      const response = await fetch('https://api64.ipify.org?format=json');
-      if (!response.ok) {
-        throw new Error(`Failed to fetch IP: ${response.statusText}`);
-      }
-      const data = await response.json();
-      setUserIp(data.ip);
-      return data.ip;
+      const fp = await FingerprintJS.load();
+      const result = await fp.get();
+      setUserId(result.visitorId); // Unique ID for the user
+      return result.visitorId;
     } catch (error) {
-      console.error("Failed to fetch IP address:", error);
-      toast.error("Failed to fetch your IP address. Using a default IP.");
-      return '0.0.0.0'; // Fallback IP
+      console.error("Failed to generate user ID:", error);
+      return 'unknown-user';
     }
   };
 
-  const generateEmail = async (ipAddress?: string) => {
+  const generateEmail = async (deviceId?: string) => {
     setIsGenerating(true);
     try {
-      const ip = ipAddress || userIp;
+      const id = deviceId || userId;
       const response = await fetch(`${BASE_URL}/users/generateEmail`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ipadress: ip }),
+        body: JSON.stringify({ ipadress: id }),
       });
 
       if (!response.ok) {
@@ -145,14 +137,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
       </div>
       <div className="flex justify-center gap-4 mt-4">
         <button
-          onClick={() =>
-            fetchUserIP()
-              .then(generateEmail)
-              .catch((error) => {
-                console.error("Failed to fetch IP or generate email:", error);
-                toast.error("Failed to generate email. Please check your network connection.");
-              })
-          }
+          onClick={() => fetchUserId().then(generateEmail)}
           disabled={isGenerating}
           className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
         >
