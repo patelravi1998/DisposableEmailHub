@@ -66,7 +66,7 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
 
   const deleteAllEmails = async () => {
     console.log(`>>>> Attempting to delete emails...`);
-    const storedEmail = localStorage.getItem("temporaryEmail");
+    const storedEmail = sessionStorage.getItem("temporaryEmail");
   
     if (!storedEmail) {
       toast.error("No temporary email found!");

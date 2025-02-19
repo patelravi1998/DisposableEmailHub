@@ -16,7 +16,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
   const [userIp, setUserIp] = useState('');
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem('temporaryEmail');
+    const storedEmail = sessionStorage.getItem('temporaryEmail');
     if (storedEmail) {
       setTimeout(() => onEmailGenerated(storedEmail), 0);
     } else {
@@ -28,7 +28,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
     try {
       const response = await fetch('https://api64.ipify.org?format=json');
       const data = await response.json();
-      localStorage.setItem('userIp', data.ip);
+      sessionStorage.setItem('userIp', data.ip);
       setUserIp(data.ip);
       return data.ip;
     } catch (error) {
@@ -47,8 +47,9 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         body: JSON.stringify({ ipadress: ip })
       });
       const data = await response.json();
+      console.log(`>>>>>data${JSON.stringify(data)}`)
       if (data.status) {
-        localStorage.setItem('temporaryEmail', data.data);
+        sessionStorage.setItem('temporaryEmail', data.data);
         onEmailGenerated(data.data);
         toast.success(`New email generated: ${data.data}`);
         window.location.reload();
@@ -74,7 +75,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
   const deleteEmail = () => {
     if (!currentEmail) return toast.error("No email address to delete");
-    localStorage.removeItem('temporaryEmail');
+    sessionStorage.removeItem('temporaryEmail');
     onEmailGenerated('');
     toast.success("Email address deleted!");
     window.location.reload();

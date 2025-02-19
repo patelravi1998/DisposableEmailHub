@@ -31,13 +31,13 @@ export const EmailList = () => {
   useEffect(() => {
     const fetchEmails = async () => {
       setError(null);
-      const storedIp = localStorage.getItem("userIp");
+      const storedIp = sessionStorage.getItem("userIp");
       if (!storedIp) {
         // setError("No IP address found in local storage.");
         setLoading(false);
         return;
       }
-      const temporaryEmail = localStorage.getItem("temporaryEmail");
+      const temporaryEmail = sessionStorage.getItem("temporaryEmail");
       if (!storedIp) {
         // setError("No temporaryEmail  found in local storage.");
         setLoading(false);
