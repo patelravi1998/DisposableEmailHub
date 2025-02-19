@@ -79,7 +79,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
       // }
     } catch (error) {
       console.error("Email generation error:", error);
-      toast.error("Failed to generate email. Please try again.");
+      toast.error("Failed to generate email. Please try again.",error);
     } finally {
       setIsGenerating(false);
     }
