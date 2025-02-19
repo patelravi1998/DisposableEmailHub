@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, Mail, X } from "lucide-react";
+import { Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { decryptData } from "../encryption"; // Import decryption
 
 interface Email {
   id: string;
@@ -18,7 +19,7 @@ interface Email {
   body?: string;
   seen: boolean;
   date: string;
-  sender_name:string
+  sender_name: string;
 }
 
 export const EmailList = () => {
@@ -32,18 +33,14 @@ export const EmailList = () => {
     const fetchEmails = async () => {
       setError(null);
       const storedIp = sessionStorage.getItem("userIp");
-      if (!storedIp) {
-        // setError("No IP address found in local storage.");
+      const encryptedEmail = sessionStorage.getItem("temporaryEmail");
+
+      if (!storedIp || !encryptedEmail) {
         setLoading(false);
         return;
       }
-      const temporaryEmail = sessionStorage.getItem("temporaryEmail");
-      if (!storedIp) {
-        // setError("No temporaryEmail  found in local storage.");
-        setLoading(false);
-        return;
-      }
-      
+
+      const temporaryEmail = decryptData(encryptedEmail); // Decrypt email before using
 
       try {
         const response = await fetch(
@@ -77,12 +74,12 @@ export const EmailList = () => {
     fetchEmails(); // Initial fetch
 
     const interval = setInterval(() => {
-      setShowSplash(true); // Show the splash effect
-      setTimeout(() => setShowSplash(false), 1200); // Hide splash after animation
+      setShowSplash(true);
+      setTimeout(() => setShowSplash(false), 1200);
       fetchEmails();
-    }, 10000); // Fetch every 10 seconds
+    }, 10000);
 
-    return () => clearInterval(interval); // Cleanup interval on unmount
+    return () => clearInterval(interval);
   }, []);
 
   const onViewEmail = (email: Email) => {
@@ -107,7 +104,6 @@ export const EmailList = () => {
 
   return (
     <div className="relative">
-      {/* Splash Effect */}
       <div
         className={cn(
           "absolute top-0 left-0 w-0 h-2 bg-blue-500 transition-all duration-1000",
@@ -136,7 +132,7 @@ export const EmailList = () => {
               onClick={() => onViewEmail(email)}
             >
               <TableCell className="font-medium">
-                {email.sender_name || email.sender_name || "Unknown Sender"}
+                {email.sender_name || "Unknown Sender"}
               </TableCell>
               <TableCell>{email.subject || "No Subject"}</TableCell>
               <TableCell className="text-right text-gray-500">
@@ -183,27 +179,26 @@ export const EmailList = () => {
 
             <h2 className="text-lg font-semibold mb-2">{selectedEmail.subject || "No Subject"}</h2>
             <p className="text-sm text-gray-500 mb-4">
-              From: {selectedEmail.sender_name || selectedEmail.sender_name || "Unknown Sender"}
+              From: {selectedEmail.sender_name || "Unknown Sender"}
             </p>
 
             <div className="border-t pt-4">
-  {selectedEmail.body ? (
-    <div
-      className="max-h-80 overflow-auto p-2 border rounded bg-gray-100"
-      dangerouslySetInnerHTML={{
-        __html: selectedEmail.body.replace(
-          /<a /g,
-          '<a target="_blank" rel="noopener noreferrer" '
-        ),
-      }}
-    />
-  ) : (
-    <p className="text-gray-700 whitespace-pre-line">
-      {selectedEmail.text || "No content available"}
-    </p>
-  )}
-</div>
-
+              {selectedEmail.body ? (
+                <div
+                  className="max-h-80 overflow-auto p-2 border rounded bg-gray-100"
+                  dangerouslySetInnerHTML={{
+                    __html: selectedEmail.body.replace(
+                      /<a /g,
+                      '<a target="_blank" rel="noopener noreferrer" '
+                    ),
+                  }}
+                />
+              ) : (
+                <p className="text-gray-700 whitespace-pre-line">
+                  {selectedEmail.text || "No content available"}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}

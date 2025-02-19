@@ -4,6 +4,7 @@ import { emailService } from "@/services/emailService";
 import { EmailView } from "./EmailView";
 import { InboxHeader } from "./inbox/InboxHeader";
 import { EmailList } from "./inbox/EmailList";
+import { encryptData, decryptData } from "./encryption";
 
 interface Email {
   id: string;
@@ -43,8 +44,6 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
   }, [currentEmail]);
 
   const refreshInbox = async () => {
-    console.log(`>>>>>hastag`)
-
     if (!currentEmail || loading) return;
     setLoading(true);
     setIsRefreshing(true);
@@ -56,7 +55,6 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
       }
     } catch (error) {
       console.error("Error refreshing inbox:", error);
-      // toast.error("Failed to refresh inbox");
       setEmails([]);
     } finally {
       setLoading(false);
@@ -66,13 +64,14 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
 
   const deleteAllEmails = async () => {
     console.log(`>>>> Attempting to delete emails...`);
-    const storedEmail = sessionStorage.getItem("temporaryEmail");
-  
-    if (!storedEmail) {
+    const encryptedEmail = sessionStorage.getItem("temporaryEmail");
+    if (!encryptedEmail) {
       toast.error("No temporary email found!");
       return;
     }
-  
+
+    const storedEmail = decryptData(encryptedEmail);
+
     try {
       const response = await fetch(
         "https://email-geneartor-production.up.railway.app/api/users/delete_mails",
@@ -84,15 +83,15 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
           body: JSON.stringify({ mail: storedEmail }),
         }
       );
-  
+
       const result = await response.json();
       console.log("Delete API Response:", response.status, result);
-  
+
       if (response.ok) {
         toast.success("All emails deleted!");
         setTimeout(() => {
-          window.location.reload(); // Reload the page after successful deletion
-        }, 1000); // Adding a slight delay for better user experience
+          window.location.reload();
+        }, 1000);
       } else {
         toast.error(result.message || `Failed to delete emails (Status: ${response.status})`);
       }
@@ -101,9 +100,6 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
       toast.error(`Error: ${error.message || "An error occurred while deleting emails."}`);
     }
   };
-  
-  
-  
 
   const handleViewEmail = (email: Email) => {
     setSelectedEmail(email);

@@ -5,6 +5,23 @@ import { EmailSettings } from './EmailSettings';
 import { BASE_URL } from '../common';
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { QRCodeSVG } from 'qrcode.react';
+import CryptoJS from 'crypto-js';
+
+const SECRET_KEY = "Cusatian@12345"; // Replace with a secure key
+
+const encryptData = (data) => {
+  return CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
+};
+
+const decryptData = (ciphertext) => {
+  try {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
+    return bytes.toString(CryptoJS.enc.Utf8);
+  } catch (error) {
+    console.error("Decryption error:", error);
+    return null;
+  }
+};
 
 interface EmailGeneratorProps {
   onEmailGenerated: (email: string) => void;
@@ -18,7 +35,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('temporaryEmail');
     if (storedEmail) {
-      setTimeout(() => onEmailGenerated(storedEmail), 0);
+      setTimeout(() => onEmailGenerated(decryptData(storedEmail)), 0);
     } else {
       fetchUserIP().then(generateEmail);
     }
@@ -28,7 +45,8 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
     try {
       const response = await fetch('https://api64.ipify.org?format=json');
       const data = await response.json();
-      sessionStorage.setItem('userIp', data.ip);
+      const encryptedIp = encryptData(data.ip);
+      sessionStorage.setItem('userIp', encryptedIp);
       setUserIp(data.ip);
       return data.ip;
     } catch (error) {
@@ -47,9 +65,9 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         body: JSON.stringify({ ipadress: ip })
       });
       const data = await response.json();
-      console.log(`>>>>>data${JSON.stringify(data)}`)
+      console.log(`>>>>>data${JSON.stringify(data)}`);
       if (data.status) {
-        sessionStorage.setItem('temporaryEmail', data.data);
+        sessionStorage.setItem('temporaryEmail', encryptData(data.data));
         onEmailGenerated(data.data);
         toast.success(`New email generated: ${data.data}`);
         window.location.reload();
