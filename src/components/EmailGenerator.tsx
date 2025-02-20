@@ -100,53 +100,68 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
     sessionStorage.removeItem('temporaryEmail');
     onEmailGenerated('');
     toast.success("Email address deleted!");
+    setTimeout(() => {
+      window.location.reload(); // Reload the page after successful deletion
+    }, 1000);
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto p-4 sm:p-6">
-      <div className="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-center">
-        <input
-          type="text"
-          value={currentEmail}
-          readOnly
-          placeholder="Your temporary email address"
-          className="flex-1 px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none w-full sm:w-auto"
-        />
-        <div className="flex gap-2 mt-2 sm:mt-0 sm:ml-2">
-          <Sheet>
-            <SheetTrigger>
-              <button className="p-2 bg-gray-200 rounded-lg hover:bg-gray-300">
-                <QrCode className="w-5 h-5" />
-              </button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Share via QR Code</SheetTitle>
-                <SheetDescription>
-                  Scan this code to quickly access your email
-                </SheetDescription>
-              </SheetHeader>
-              <div className="flex justify-center items-center mt-8">
-                <QRCodeSVG value={currentEmail || ''} size={200} level="H" includeMargin={true} />
-              </div>
-            </SheetContent>
-          </Sheet>
-          <button onClick={copyEmail} className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-            <Copy className="w-5 h-5" />
-          </button>
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6">
+      {/* Email Display Box */}
+      <div className="glass rounded-2xl mb-6 p-1.5 transition-all hover:shadow-lg hover:scale-[1.02] duration-300">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-xl">
+          <input
+            type="text"
+            value={currentEmail}
+            readOnly
+            placeholder="Your temporary email address"
+            className="flex-1 px-4 py-3 text-sm sm:text-base rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none border-b sm:border-r border-gray-100"
+          />
+          <div className="flex items-center justify-end gap-2 p-2">
+            <button 
+              onClick={copyEmail} 
+              disabled={!currentEmail} 
+              className="bg-blue-500 text-white px-4 py-2 text-sm rounded-xl hover:opacity-90 transition-all"
+            >
+              Copy
+            </button>
+          </div>
         </div>
       </div>
-      <div className="flex justify-center gap-4 mt-4">
-        <button
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap justify-center gap-4 items-center mb-6">
+        {/* Generate Button */}
+        <button 
           onClick={() => fetchUserId().then(generateEmail)}
-          disabled={isGenerating}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+          disabled={isGenerating} 
+  className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all"
+>
+  {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : "Generate"}
+</button>
+
+
+        {/* Refresh Button (Newly Added) */}
+        {/* <button 
+          onClick={refreshInbox}
+          disabled={isRefreshing || !currentEmail} 
+          className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all"
         >
-          {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : "Generate"}
+          <RefreshCw className={w-4 h-4 ${isRefreshing ? "animate-spin" : ""}} />
+          Refresh
+        </button> */}
+
+        {/* Delete Button */}
+        <button 
+          onClick={deleteEmail} 
+          disabled={!currentEmail} 
+          className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete
         </button>
-        <button onClick={deleteEmail} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-          <Trash2 className="w-5 h-5" />
-        </button>
+
+        {/* Email Settings (No changes, assuming it works) */}
         <EmailSettings onExpirationChange={() => {}} />
       </div>
     </div>
