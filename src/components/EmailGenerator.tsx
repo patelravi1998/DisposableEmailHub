@@ -34,7 +34,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
   const [userId, setUserId] = useState('');
 
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem('temporaryEmail');
+    const storedEmail = localStorage.getItem('temporaryEmail');
     if (storedEmail) {
       const decryptedEmail = decryptData(storedEmail);
       if (decryptedEmail) {
@@ -47,19 +47,21 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
   const fetchUserId = async () => {
     try {
-      const fp = await FingerprintJS.load();
-      const result = await fp.get();
-      setUserId(result.visitorId); // Unique ID for the user
-      return result.visitorId;
+      const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+      const randomNum = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
+      const sessionId= `${timestamp}${randomNum}`; 
+      setUserId(sessionId); // Unique ID for the user
+      return sessionId;
     } catch (error) {
-      console.error("Failed to generate user ID:", error);
-      return 'unknown-user';
+      console.error("Failed to generate Session ID:", error);
+      return 'invalidSession';
     }
   };
 
   const generateEmail = async (deviceId?: string) => {
     setIsGenerating(true);
     try {
+      console.log(`>>>>>deviceId`,deviceId)
       const id = deviceId || userId;
       const response = await fetch(`${BASE_URL}/users/generateEmail`, {
         method: 'POST',
@@ -73,8 +75,8 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
       const data = await response.json();
       const email = data.data;
-      sessionStorage.setItem('temporaryEmail', encryptData(email));
-      sessionStorage.setItem('userIp', encryptData(id));
+      localStorage.setItem('temporaryEmail', encryptData(email));
+      localStorage.setItem('userIp', encryptData(id));
       onEmailGenerated(email);
       toast.success(`New email generated: ${email}`);
     } catch (error) {
@@ -97,7 +99,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
   const deleteEmail = () => {
     if (!currentEmail) return toast.error("No email address to delete");
-    sessionStorage.removeItem('temporaryEmail');
+    localStorage.removeItem('temporaryEmail');
     onEmailGenerated('');
     toast.success("Email address deleted!");
     setTimeout(() => {

@@ -64,7 +64,7 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
 
   const deleteAllEmails = async () => {
     console.log(`>>>> Attempting to delete emails...`);
-    const encryptedEmail = sessionStorage.getItem("temporaryEmail");
+    const encryptedEmail = localStorage.getItem("temporaryEmail");
     if (!encryptedEmail) {
       toast.error("No temporary email found!");
       return;

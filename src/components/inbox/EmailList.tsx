@@ -33,9 +33,9 @@ export const EmailList = () => {
     const fetchEmails = async () => {
       console.log(`>>>>>sacveee`)
       setError(null);
-      const storedIp = sessionStorage.getItem("userIp");
+      const storedIp = localStorage.getItem("userIp");
       console.log(`>>>>storedIp`,storedIp)
-      const encryptedEmail = sessionStorage.getItem("temporaryEmail");
+      const encryptedEmail = localStorage.getItem("temporaryEmail");
 
       if (!storedIp || !encryptedEmail) {
         setLoading(false);
