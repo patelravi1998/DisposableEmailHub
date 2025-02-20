@@ -117,6 +117,21 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
             placeholder="Your temporary email address"
             className="flex-1 px-4 py-3 text-sm sm:text-base rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none border-b sm:border-r border-gray-100"
           />
+          <Sheet>
+            <SheetTrigger>
+              <button className="p-2 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all">
+                <QrCode className="w-5 h-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Scan QR Code</SheetTitle>
+              </SheetHeader>
+              <div className="flex justify-center p-4">
+                {currentEmail ? <QRCodeSVG value={currentEmail} size={200} /> : <p>No email available</p>}
+              </div>
+            </SheetContent>
+          </Sheet>
           <div className="flex items-center justify-end gap-2 p-2">
             <button 
               onClick={copyEmail} 
