@@ -109,17 +109,17 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6">
       {/* Email Display Box */}
       <div className="glass rounded-2xl mb-6 p-1.5 transition-all hover:shadow-lg hover:scale-[1.02] duration-300">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-xl">
+        <div className="flex flex-wrap sm:flex-nowrap items-center bg-white rounded-xl p-2 gap-2">
           <input
             type="text"
             value={currentEmail}
             readOnly
             placeholder="Your temporary email address"
-            className="flex-1 px-4 py-3 text-sm sm:text-base rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none border-b sm:border-r border-gray-100"
+            className="flex-1 px-4 py-3 text-sm sm:text-base rounded-xl border border-gray-100 w-full sm:w-auto"
           />
           <Sheet>
             <SheetTrigger>
-              <button className="p-2 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all">
+              <button className="p-2 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all whitespace-nowrap">
                 <QrCode className="w-5 h-5" />
               </button>
             </SheetTrigger>
@@ -132,15 +132,13 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
               </div>
             </SheetContent>
           </Sheet>
-          <div className="flex items-center justify-end gap-2 p-2">
-            <button 
-              onClick={copyEmail} 
-              disabled={!currentEmail} 
-              className="bg-blue-500 text-white px-4 py-2 text-sm rounded-xl hover:opacity-90 transition-all"
-            >
-              Copy
-            </button>
-          </div>
+          <button 
+            onClick={copyEmail} 
+            disabled={!currentEmail} 
+            className="bg-blue-500 text-white px-4 py-2 text-sm rounded-xl hover:opacity-90 transition-all whitespace-nowrap"
+          >
+            Copy
+          </button>
         </div>
       </div>
 
