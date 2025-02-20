@@ -33,10 +33,22 @@ export const EmailList = () => {
     const fetchEmails = async () => {
       console.log(`>>>>>sacveee`)
       setError(null);
-      const storedIp = localStorage.getItem("userIp");
-      console.log(`>>>>storedIp`,storedIp)
-      const encryptedEmail = localStorage.getItem("temporaryEmail");
-
+      const getCookie = (name: string) => {
+        return document.cookie
+          .split('; ')
+          .find(row => row.startsWith(name + "="))
+          ?.split('=')[1] || null;
+      };
+      
+      const storedIp = getCookie("userIp");
+      console.log(`>>>>storedIp`, storedIp);
+      
+      const encryptedEmail = getCookie("temporaryEmail");
+      if (!encryptedEmail) {
+        // toast.error("No temporary email found!");
+        return;
+      }
+      
       if (!storedIp || !encryptedEmail) {
         setLoading(false);
         return;

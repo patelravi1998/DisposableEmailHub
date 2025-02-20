@@ -3,10 +3,9 @@ import { Copy, Trash2, Loader, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { EmailSettings } from './EmailSettings';
 import { BASE_URL } from '../common';
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { QRCodeSVG } from 'qrcode.react';
 import CryptoJS from 'crypto-js';
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 const SECRET_KEY = "Cusatian@12345";
 
@@ -24,6 +23,25 @@ const decryptData = (ciphertext: string) => {
   }
 };
 
+// ✅ Set Cookie
+const setCookie = (name: string, value: string, days = 1) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${value}; path=/; expires=${expires}; Secure`;
+};
+
+// ✅ Get Cookie
+const getCookie = (name: string) => {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + "="))
+    ?.split('=')[1] || null;
+};
+
+// ✅ Remove Cookie
+const removeCookie = (name: string) => {
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+};
+
 interface EmailGeneratorProps {
   onEmailGenerated: (email: string) => void;
   currentEmail: string;
@@ -34,7 +52,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
   const [userId, setUserId] = useState('');
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem('temporaryEmail');
+    const storedEmail = getCookie('temporaryEmail');
     if (storedEmail) {
       const decryptedEmail = decryptData(storedEmail);
       if (decryptedEmail) {
@@ -47,10 +65,10 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
   const fetchUserId = async () => {
     try {
-      const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
-      const randomNum = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
-      const sessionId= `${timestamp}${randomNum}`; 
-      setUserId(sessionId); // Unique ID for the user
+      const timestamp = Date.now().toString().slice(-6);
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const sessionId = `${timestamp}${randomNum}`;
+      setUserId(sessionId);
       return sessionId;
     } catch (error) {
       console.error("Failed to generate Session ID:", error);
@@ -61,7 +79,6 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
   const generateEmail = async (deviceId?: string) => {
     setIsGenerating(true);
     try {
-      console.log(`>>>>>deviceId`,deviceId)
       const id = deviceId || userId;
       const response = await fetch(`${BASE_URL}/users/generateEmail`, {
         method: 'POST',
@@ -75,8 +92,11 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
       const data = await response.json();
       const email = data.data;
-      localStorage.setItem('temporaryEmail', encryptData(email));
-      localStorage.setItem('userIp', encryptData(id));
+      
+      // ✅ Store in cookies instead of localStorage
+      setCookie('temporaryEmail', encryptData(email));
+      setCookie('userIp', encryptData(id));
+
       onEmailGenerated(email);
       toast.success(`New email generated: ${email}`);
     } catch (error) {
@@ -99,17 +119,19 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
   const deleteEmail = () => {
     if (!currentEmail) return toast.error("No email address to delete");
-    localStorage.removeItem('temporaryEmail');
+    
+    // ✅ Remove from cookies instead of localStorage
+    removeCookie('temporaryEmail');
+
     onEmailGenerated('');
     toast.success("Email address deleted!");
     setTimeout(() => {
-      window.location.reload(); // Reload the page after successful deletion
+      window.location.reload();
     }, 1000);
   };
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6">
-      {/* Email Display Box */}
       <div className="glass rounded-2xl mb-6 p-1.5 transition-all hover:shadow-lg hover:scale-[1.02] duration-300">
         <div className="flex flex-wrap sm:flex-nowrap items-center bg-white rounded-xl p-2 gap-2">
           <input
@@ -144,29 +166,15 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex flex-wrap justify-center gap-4 items-center mb-6">
-        {/* Generate Button */}
         <button 
           onClick={() => fetchUserId().then(generateEmail)}
           disabled={isGenerating} 
-  className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all"
->
-  {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : "Generate"}
-</button>
-
-
-        {/* Refresh Button (Newly Added) */}
-        {/* <button 
-          onClick={refreshInbox}
-          disabled={isRefreshing || !currentEmail} 
           className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all"
         >
-          <RefreshCw className={w-4 h-4 ${isRefreshing ? "animate-spin" : ""}} />
-          Refresh
-        </button> */}
+          {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : "Generate"}
+        </button>
 
-        {/* Delete Button */}
         <button 
           onClick={deleteEmail} 
           disabled={!currentEmail} 
@@ -176,7 +184,6 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
           Delete
         </button>
 
-        {/* Email Settings (No changes, assuming it works) */}
         <EmailSettings onExpirationChange={() => {}} />
       </div>
     </div>

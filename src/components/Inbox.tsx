@@ -5,6 +5,8 @@ import { EmailView } from "./EmailView";
 import { InboxHeader } from "./inbox/InboxHeader";
 import { EmailList } from "./inbox/EmailList";
 import { encryptData, decryptData } from "./encryption";
+import Cookies from "js-cookie";
+
 
 interface Email {
   id: string;
@@ -64,7 +66,7 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
 
   const deleteAllEmails = async () => {
     console.log(`>>>> Attempting to delete emails...`);
-    const encryptedEmail = localStorage.getItem("temporaryEmail");
+    const encryptedEmail = Cookies.get("temporaryEmail");
     if (!encryptedEmail) {
       toast.error("No temporary email found!");
       return;
