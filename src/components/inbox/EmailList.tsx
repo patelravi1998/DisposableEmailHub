@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { decryptData } from "../encryption"; // Import decryption
+import { useTranslation } from "react-i18next";
 
 interface Email {
   id: string;
@@ -23,6 +24,7 @@ interface Email {
 }
 
 export const EmailList = () => {
+  const { t } = useTranslation();
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,10 +132,10 @@ export const EmailList = () => {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-gray-50/50">
-            <TableHead className="w-[200px]">From</TableHead>
-            <TableHead>Subject</TableHead>
-            <TableHead className="text-right w-[120px]">Date</TableHead>
-            <TableHead className="w-[80px]">Actions</TableHead>
+            <TableHead className="w-[200px]">{t("From")}</TableHead>
+            <TableHead>{t("Subject")}</TableHead>
+            <TableHead className="text-right w-[120px]">{t("Date")}</TableHead>
+            <TableHead className="w-[80px]">{t("Actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

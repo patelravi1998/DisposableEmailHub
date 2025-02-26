@@ -1,24 +1,26 @@
-
 import { Navigation } from '../components/Navigation';
 import { Shield, Clock, Lock } from 'lucide-react';
 import { Footer } from '../components/Footer';
+import { useTranslation } from 'react-i18next';
 
 const About = () => {
+  const { t } = useTranslation();
+
   const features = [
     {
       icon: Shield,
-      title: "Secure & Private",
-      description: "Your temporary emails are completely secure and private."
+      title: t("Secure & Private"),
+      description: t("Your temporary emails are completely secure and private.")
     },
     {
       icon: Clock,
-      title: "Instant Access",
-      description: "No registration required. Get your temporary email instantly."
+      title: t("Instant Access"),
+      description: t("No registration required. Get your temporary email instantly.")
     },
     {
       icon: Lock,
-      title: "Data Protection",
-      description: "We don't store any personal information."
+      title: t("Data Protection"),
+      description: t("We don't store any personal information.")
     }
   ];
 
@@ -30,11 +32,10 @@ const About = () => {
           {/* Hero Section */}
           <div className="text-center space-y-6 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-              About TempMail
+              {t("About TempMail")}
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We provide secure, instant temporary email addresses for your online needs.
-              No registration required, completely free, and privacy-focused.
+              {t("We provide secure, instant temporary email addresses for your online needs. No registration required, completely free, and privacy-focused.")}
             </p>
           </div>
 
@@ -56,10 +57,9 @@ const About = () => {
 
           {/* Mission Statement */}
           <div className="text-center space-y-6 animate-fade-in">
-            <h2 className="text-3xl font-bold text-gray-900">Our Mission</h2>
+            <h2 className="text-3xl font-bold text-gray-900">{t("Our Mission")}</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              To provide a secure and reliable temporary email service that protects 
-              your privacy while keeping the internet clean from spam.
+              {t("To provide a secure and reliable temporary email service that protects your privacy while keeping the internet clean from spam.")}
             </p>
           </div>
         </div>

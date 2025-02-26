@@ -6,6 +6,8 @@ import { BASE_URL } from '../common';
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { QRCodeSVG } from 'qrcode.react';
 import CryptoJS from 'crypto-js';
+import { useTranslation } from "react-i18next";
+
 
 const SECRET_KEY = "Cusatian@12345";
 
@@ -50,6 +52,7 @@ interface EmailGeneratorProps {
 export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [userId, setUserId] = useState('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const storedEmail = getCookie('temporaryEmail');
@@ -161,7 +164,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
             disabled={!currentEmail} 
             className="bg-blue-500 text-white px-4 py-2 text-sm rounded-xl hover:opacity-90 transition-all whitespace-nowrap"
           >
-            Copy
+            {t("Copy")}
           </button>
         </div>
       </div>
@@ -172,7 +175,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
           disabled={isGenerating} 
           className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all"
         >
-          {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : "Generate"}
+          {isGenerating ? <Loader className="animate-spin w-4 h-4" /> : t("Generate")}
         </button>
 
         <button 
@@ -181,7 +184,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
           className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl hover:bg-gray-50 transition-all"
         >
           <Trash2 className="w-4 h-4" />
-          Delete
+          {t("Delete")}
         </button>
 
         <EmailSettings onExpirationChange={() => {}} />

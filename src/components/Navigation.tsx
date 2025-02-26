@@ -3,17 +3,21 @@ import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Logo } from './Logo';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation();
+
 
   const navItems = [
-    { path: '/', label: 'TempMail' },
-    { path: '/about', label: 'About' },
-    { path: '/contact', label: 'Contact' },
-    { path: '/blog', label: 'Blog' }
+    { path: '/', label: t("TempMail") },
+    { path: '/about', label: t("About")},
+    { path: '/contact', label: t("Contact")},
+    { path: '/blog', label: t("Blog") }
   ];
 
   useEffect(() => {

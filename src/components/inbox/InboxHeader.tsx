@@ -2,6 +2,8 @@
 import { RefreshCw, Copy, Trash2, Mail, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useTranslation } from "react-i18next";
+import {useState} from "react"
 
 interface InboxHeaderProps {
   currentEmail: string;
@@ -22,6 +24,8 @@ export const InboxHeader = ({
   refreshInbox,
   deleteAllEmails,
 }: InboxHeaderProps) => {
+  const { t } = useTranslation();
+
   const copyEmail = async () => {
     if (!currentEmail) {
       toast.error('No email address to copy');
@@ -47,7 +51,7 @@ export const InboxHeader = ({
     <div className="p-6 bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 border-b">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2 animate-fade-in">
-          <Mail className="text-primary animate-scale-in" /> Your Inbox
+          <Mail className="text-primary animate-scale-in" /> {t("Your Inbox")}
         </h2>
         <div className="flex gap-2">
           <button

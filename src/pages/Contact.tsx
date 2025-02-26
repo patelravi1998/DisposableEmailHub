@@ -1,28 +1,30 @@
-
+import { useTranslation } from 'react-i18next';
 import { Navigation } from '../components/Navigation';
 import { Mail, MessageSquare, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '../components/Footer';
 
 const Contact = () => {
+  const { t } = useTranslation();
+
   const contactMethods = [
     {
       icon: Mail,
-      title: "Email Support",
-      description: "Get in touch with our support team",
-      action: "support@tempmail.com"
+      title: t("Email Support"),
+      description: t("Get in touch with our support team"),
+      action: t("support@tempmail.com")
     },
     {
       icon: MessageSquare,
-      title: "Live Chat",
-      description: "Chat with our support team",
-      action: "Start Chat"
+      title: t("Live Chat"),
+      description: t("Chat with our support team"),
+      action: t("Start Chat")
     },
     {
       icon: Globe,
-      title: "Social Media",
-      description: "Follow us on social media",
-      action: "Follow Us"
+      title: t("Social Media"),
+      description: t("Follow us on social media"),
+      action: t("Follow Us")
     }
   ];
 
@@ -34,10 +36,10 @@ const Contact = () => {
           {/* Hero Section */}
           <div className="text-center space-y-6 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-              Contact Us
+              {t("Contact Us")}
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Have questions? We're here to help. Choose your preferred method of contact below.
+              {t("Have questions? We're here to help. Choose your preferred method of contact below.")}
             </p>
           </div>
 
@@ -62,40 +64,40 @@ const Contact = () => {
 
           {/* Contact Form */}
           <div className="bg-white p-8 rounded-xl shadow-sm animate-fade-in">
-            <h2 className="text-2xl font-bold mb-6 text-center">Send us a Message</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">{t("Send us a Message")}</h2>
             <form className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name
+                    {t("Name")}
                   </label>
                   <input
                     type="text"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
-                    placeholder="Your name"
+                    placeholder={t("Your name")}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+                    {t("Email")}
                   </label>
                   <input
                     type="email"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
-                    placeholder="Your email"
+                    placeholder={t("Your email")}
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message
+                  {t("Message")}
                 </label>
                 <textarea
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors h-32"
-                  placeholder="Your message"
+                  placeholder={t("Your message")}
                 />
               </div>
-              <Button className="w-full">Send Message</Button>
+              <Button className="w-full">{t("Send Message")}</Button>
             </form>
           </div>
         </div>

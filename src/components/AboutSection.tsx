@@ -1,15 +1,17 @@
-
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 export const AboutSection = () => {
+  const { t } = useTranslation();
+  
   const features = [
-    "No Sign up required",
-    "No annoying mails",
-    "No installations",
-    "Secure & Private",
-    "Auto-delete after expiry",
-    "24/7 availability"
+    t("No Sign up required"),
+    t("No annoying mails"),
+    t("No installations"),
+    t("Secure & Private"),
+    t("Auto-delete after expiry"),
+    t("24/7 availability")
   ];
 
   return (
@@ -24,13 +26,12 @@ export const AboutSection = () => {
             viewport={{ once: true }}
             className="flex-1 space-y-8 relative z-10"
           >
-            <span className="text-primary font-medium inline-block text-lg">About temp mail</span>
+            <span className="text-primary font-medium inline-block text-lg">{t("About temp mail")}</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 leading-tight">
-              Your Secure <span className="text-primary">Temporary Email</span> Solution
+              {t("Your Secure")} <span className="text-primary">{t("Temporary Email")}</span> {t("Solution")}
             </h2>
             <p className="text-gray-600 text-lg md:text-xl leading-relaxed">
-              Temp Mail provides disposable email addresses to protect your privacy. 
-              Perfect for testing, registrations, and avoiding spam in your primary inbox.
+              {t("Temp Mail provides disposable email addresses to protect your privacy. Perfect for testing, registrations, and avoiding spam in your primary inbox.")}
             </p>
             <ul className="space-y-6">
               {features.map((feature, index) => (
@@ -69,7 +70,7 @@ export const AboutSection = () => {
               <div className="glass p-3 rounded-2xl premium-shadow hover:shadow-lg transition-all duration-300">
                 <img 
                   src="/lovable-uploads/7f23861d-bc00-470c-8f8d-3c1d6075e621.png" 
-                  alt="Temporary Email Interface" 
+                  alt={t("Temporary Email Interface")} 
                   className="w-full h-auto rounded-xl"
                   loading="lazy"
                 />
@@ -86,7 +87,7 @@ export const AboutSection = () => {
               <div className="glass p-3 rounded-2xl premium-shadow hover:shadow-lg transition-all duration-300">
                 <img 
                   src="/lovable-uploads/3240ca9f-aebe-489a-9f37-cd30fac54e70.png" 
-                  alt="Email Inbox Interface" 
+                  alt={t("Email Inbox Interface")} 
                   className="w-full h-auto rounded-xl"
                   loading="lazy"
                 />

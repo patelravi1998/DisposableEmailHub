@@ -1,6 +1,6 @@
-
 import { Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const testimonials = [
   {
@@ -27,6 +27,8 @@ const testimonials = [
 ];
 
 export const Testimonials = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="py-24 md:py-32 bg-gradient-to-b from-accent/10 to-white relative overflow-hidden">
       <div className="container mx-auto px-4">
@@ -38,7 +40,7 @@ export const Testimonials = () => {
             viewport={{ once: true }}
             className="inline-block text-primary font-medium text-lg mb-4"
           >
-            Testimonials
+            {t("Testimonials")}
           </motion.span>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
@@ -47,7 +49,7 @@ export const Testimonials = () => {
             viewport={{ once: true }}
             className="text-4xl md:text-5xl font-bold text-gray-900 mb-6"
           >
-            What Our Users Say
+            {t("What Our Users Say")}
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -56,7 +58,7 @@ export const Testimonials = () => {
             viewport={{ once: true }}
             className="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto"
           >
-            Join thousands of satisfied users who trust our temporary email service
+            {t("Join thousands of satisfied users who trust our temporary email service")}
           </motion.p>
         </div>
 
@@ -96,7 +98,7 @@ export const Testimonials = () => {
                   ))}
                 </div>
                 
-                <p className="text-gray-700 text-lg leading-relaxed">{testimonial.content}</p>
+                <p className="text-gray-700 text-lg leading-relaxed">{t(testimonial.content)}</p>
                 
                 <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
               </div>

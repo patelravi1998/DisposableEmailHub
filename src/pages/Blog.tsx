@@ -1,4 +1,4 @@
-
+import { useTranslation } from 'react-i18next';
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { motion } from 'framer-motion';
@@ -9,7 +9,15 @@ import { CategoryFilter } from '../components/blog/CategoryFilter';
 import { posts } from '../data/blogPosts';
 
 const Blog = () => {
-  const categories = ["All", "Security", "Privacy", "Guide", "Tips"];
+  const { t } = useTranslation();
+
+  const categories = [
+    t("All"),
+    t("Security"),
+    t("Privacy"),
+    t("Guide"),
+    t("Tips")
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-accent to-white">
@@ -23,10 +31,10 @@ const Blog = () => {
             className="text-center space-y-6"
           >
             <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              Our Blog
+              {t("Our Blog")}
             </h1>
             <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-              Insights and guides about email security, privacy, and digital communication best practices.
+              {t("Insights and guides about email security, privacy, and digital communication best practices.")}
             </p>
           </motion.div>
 
