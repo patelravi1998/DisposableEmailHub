@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/table";
 import { decryptData } from "../encryption"; // Import decryption
 import { useTranslation } from "react-i18next";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 interface Email {
   id: string;
@@ -62,7 +64,7 @@ export const EmailList = () => {
 
       try {
         const response = await fetch(
-          `https://email-geneartor-production.up.railway.app/api/users/userMails?ipadress=${ipaddress}&temporaryEmail=${temporaryEmail}`
+          `${API_BASE_URL}/users/userMails?ipadress=${ipaddress}&temporaryEmail=${temporaryEmail}`
         );
 
         if (!response.ok) {

@@ -6,6 +6,8 @@ import { InboxHeader } from "./inbox/InboxHeader";
 import { EmailList } from "./inbox/EmailList";
 import { encryptData, decryptData } from "./encryption";
 import Cookies from "js-cookie";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 
 interface Email {
@@ -76,7 +78,7 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
 
     try {
       const response = await fetch(
-        "https://email-geneartor-production.up.railway.app/api/users/delete_mails",
+        `${API_BASE_URL}/users/delete_mails`,
         {
           method: "POST",
           headers: {

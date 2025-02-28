@@ -7,6 +7,8 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/co
 import { QRCodeSVG } from 'qrcode.react';
 import CryptoJS from 'crypto-js';
 import { useTranslation } from "react-i18next";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 
 const SECRET_KEY = "Cusatian@12345";
@@ -83,7 +85,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
     setIsGenerating(true);
     try {
       const id = deviceId || userId;
-      const response = await fetch(`${BASE_URL}/users/generateEmail`, {
+      const response = await fetch(`${API_BASE_URL}/users/generateEmail`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ipadress: id }),
