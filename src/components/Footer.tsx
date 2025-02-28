@@ -1,21 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Facebook, Instagram, Linkedin, Twitter, Mail, MapPin, Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n"; // Import i18n
+import { useNavigate } from "react-router-dom"; // Import useNavigate for URL updates
 
 export const Footer = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [showLanguages, setShowLanguages] = useState(false);
+
+  // List of supported languages
   const languages = [
-    { code: "en", label: "English" },
-    { code: "fr", label: "French" },
-    { code: "es", label: "Spanish" },
-    { code: "hi", label: "Hindi" },
-    { code: "ru", label: "Russian" },
+    { code: "en", label: "English", flag: "🇺🇸" },
+    { code: "fr", label: "French", flag: "🇫🇷" },
+    { code: "es", label: "Spanish", flag: "🇪🇸" },
+    { code: "hi", label: "Hindi", flag: "🇮🇳" },
+    { code: "ru", label: "Russian", flag: "🇷🇺" },
+    { code: "nl", label: "Dutch", flag: "🇳🇱" },
+    { code: "de", label: "German", flag: "🇩🇪" },
+    { code: "it", label: "Italian", flag: "🇮🇹" },
+    { code: "pl", label: "Polish", flag: "🇵🇱" },
+    { code: "pt", label: "Portuguese", flag: "🇵🇹" },
+    { code: "sr", label: "Serbian", flag: "🇷🇸" },
+    { code: "tr", label: "Turkish", flag: "🇹🇷" },
+    { code: "uk", label: "Ukrainian", flag: "🇺🇦" },
+    { code: "ar", label: "Arabic", flag: "🇸🇦" },
+    { code: "zh", label: "Chinese", flag: "🇨🇳" },
+    { code: "cs", label: "Czech", flag: "🇨🇿" },
+    { code: "da", label: "Danish", flag: "🇩🇰" },
+    { code: "fi", label: "Finnish", flag: "🇫🇮" },
+    { code: "el", label: "Greek", flag: "🇬🇷" },
+    { code: "hu", label: "Hungarian", flag: "🇭🇺" },
+    { code: "id", label: "Indonesian", flag: "🇮🇩" },
+    { code: "ja", label: "Japanese", flag: "🇯🇵" },
+    { code: "ko", label: "Korean", flag: "🇰🇷" },
+    { code: "no", label: "Norwegian", flag: "🇳🇴" },
+    { code: "fa", label: "Persian", flag: "🇮🇷" },
+    { code: "ro", label: "Romanian", flag: "🇷🇴" },
+    { code: "sv", label: "Swedish", flag: "🇸🇪" },
+    { code: "th", label: "Thai", flag: "🇹🇭" },
+    { code: "vi", label: "Vietnamese", flag: "🇻🇳" },
   ];
+
+  // Function to detect user's preferred language
+  const detectUserLanguage = () => {
+    const browserLanguage = navigator.language.split("-")[0]; // Get the base language (e.g., "en" from "en-US")
+    const supportedLanguages = languages.map((lang) => lang.code);
+
+    // Check if the browser language is supported
+    if (supportedLanguages.includes(browserLanguage)) {
+      return browserLanguage;
+    } else {
+      return "en"; // Default to English if the browser language is not supported
+    }
+  };
+
+  // Automatically set the language when the component mounts
+  useEffect(() => {
+    const userLanguage = detectUserLanguage();
+    i18n.changeLanguage(userLanguage); // Set the language
+    navigate(`/${userLanguage}`); // Update the URL
+  }, []);
 
   return (
     <footer className="py-20 md:py-32 bg-gradient-to-b from-white to-accent/10 relative overflow-hidden">
@@ -115,37 +163,36 @@ export const Footer = () => {
         </div>
 
         {/* Language Selector */}
-        {/* Language Selector */}
-        {/* Language Selector */}
-        {/* Language Selector */}
         <div className="mt-10 flex justify-center md:justify-end relative z-50">
-          <div className="relative inline-block">
-            <Button
-              onClick={() => setShowLanguages(!showLanguages)}
-              className="bg-gradient-to-r from-primary to-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:scale-105 transition-transform relative z-10"
-            >
-              🌍 {t("Select Language")}
-            </Button>
+  <div className="relative inline-block">
+    <Button
+      onClick={() => setShowLanguages(!showLanguages)}
+      className="bg-gradient-to-r from-primary to-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:scale-105 transition-transform relative z-10"
+    >
+      🌍 {t("Select Language")}
+    </Button>
 
-            {showLanguages && (
-              <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:right-0 mt-2 w-44 bg-white shadow-lg rounded-lg overflow-hidden border z-50">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-primary/10 transition-all"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      i18n.changeLanguage(lang.code);
-                      setShowLanguages(false);
-                    }}
-                  >
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+    {showLanguages && (
+      <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:right-0 mt-2 w-56 bg-white shadow-lg rounded-lg overflow-hidden border z-50 max-h-60 overflow-y-auto">
+        {languages.map((lang) => (
+          <button
+            key={lang.code}
+            className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-primary/10 transition-all flex items-center gap-2"
+            onClick={(e) => {
+              e.preventDefault();
+              i18n.changeLanguage(lang.code);
+              navigate(`/${lang.code}`); // Update URL with language code using useNavigate
+              setShowLanguages(false);
+            }}
+          >
+            <span>{lang.flag}</span>
+            <span>{lang.label}</span>
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
         <div className="mt-20 pt-8 border-t text-center relative z-10">
           <p className="text-gray-600 animate-fade-in text-lg">
             ©{new Date().getFullYear()} {t("Temp Mail.")} {t("All rights reserved.")} 
