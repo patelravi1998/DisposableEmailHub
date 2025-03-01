@@ -170,16 +170,17 @@ export const Footer = () => {
 
         {/* Language Selector */}
         <div className="mt-10 flex justify-center md:justify-end relative z-50">
-  <div className="relative inline-block">
-    <Button
-      onClick={() => setShowLanguages(!showLanguages)}
-      className="bg-gradient-to-r from-primary to-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:scale-105 transition-transform relative z-10"
-    >
-      🌍 {t("Select Language")}
-    </Button>
+        <div className="relative inline-block">
+  <Button
+    onClick={() => setShowLanguages(!showLanguages)}
+    className="bg-gradient-to-r from-primary to-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:scale-105 transition-transform relative z-10"
+  >
+    🌍 {t("Select Language")}
+  </Button>
 
-    {showLanguages && (
-      <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:right-0 mt-2 w-56 bg-white shadow-lg rounded-lg overflow-hidden border z-50 max-h-60 overflow-y-auto">
+  {showLanguages && (
+    <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:right-0 mt-2 w-56 bg-white shadow-lg rounded-lg overflow-hidden border z-50 max-h-60 overflow-y-auto">
+      <div className="max-h-48 overflow-y-auto"> {/* Add a scrollable container */}
         {languages.map((lang) => (
           <button
             key={lang.code}
@@ -196,8 +197,9 @@ export const Footer = () => {
           </button>
         ))}
       </div>
-    )}
-  </div>
+    </div>
+  )}
+</div>
 </div>
         <div className="mt-20 pt-8 border-t text-center relative z-10">
           <p className="text-gray-600 animate-fade-in text-lg">
