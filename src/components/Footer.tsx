@@ -60,10 +60,16 @@ export const Footer = () => {
 
   // Automatically set the language when the component mounts
   useEffect(() => {
+    const currentPath = window.location.pathname;
     const userLanguage = detectUserLanguage();
-    i18n.changeLanguage(userLanguage); // Set the language
-    navigate(`/${userLanguage}`); // Update the URL
+  
+    // Only navigate if the URL is just `/`
+    if (currentPath === "/") {
+      i18n.changeLanguage(userLanguage);
+      navigate(`/${userLanguage}`);
+    }
   }, []);
+  
 
   return (
     <footer className="py-20 md:py-32 bg-gradient-to-b from-white to-accent/10 relative overflow-hidden">
