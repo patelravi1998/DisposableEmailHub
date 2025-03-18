@@ -15,9 +15,9 @@ export const Navigation = () => {
 
   const navItems = [
     { path: '/', label: t("TempMail") },
-    // { path: '/about', label: t("About")},
-    // { path: '/contact', label: t("Contact")},
-    // { path: '/blog', label: t("Blog") }
+    { path: '/about', label: t("About")},
+    { path: '/contact', label: t("Contact")},
+    { path: '/blog', label: t("Blog") }
   ];
 
   useEffect(() => {
