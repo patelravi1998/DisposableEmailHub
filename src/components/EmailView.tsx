@@ -2,18 +2,28 @@ import { useState } from 'react';
 import { X, Reply, Forward, Trash2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface Attachment {
+  filename: string;
+  content: string; // Base64 encoded content
+  contentType: string;
+  size: number;
+}
+
 interface EmailViewProps {
   email: {
     id: string;
-    from: {
-      address: string;
-      name: string;
-    };
+    generated_email: string;
+    ipaddress: string;
+    sender_email: string;
+    date: string;
     subject: string;
-    text?: string;
-    html?: string;
-    seen: boolean;
-    createdAt: string;
+    sender_name: string;
+    body: string;
+    status: number;
+    created_at: string;
+    updated_at: string;
+    attachments: Attachment[]; // Ensure attachments is always an array
+    seen?: boolean; // Add the `seen` property if it exists in your data
   } | null;
   onClose: () => void;
 }
@@ -35,11 +45,11 @@ export const EmailView = ({ email, onClose }: EmailViewProps) => {
     try {
       // Create text content combining email details and body
       const emailContent = `
-From: ${email.from.name} <${email.from.address}>
+From: ${email.sender_name} <${email.sender_email}>
 Subject: ${email.subject}
-Date: ${new Date(email.createdAt).toLocaleString()}
+Date: ${new Date(email.date).toLocaleString()}
 
-${email.text || (email.html ? 'HTML Content Available' : 'No content available')}
+${email.body || "No content available"}
       `.trim();
 
       // Create blob and download
@@ -61,8 +71,34 @@ ${email.text || (email.html ? 'HTML Content Available' : 'No content available')
   };
 
   const handleDelete = () => {
-    console.log(`>>>>>asaaaaa`)
+    console.log(`>>>>>asaaaaa`);
     toast.info("Delete feature coming soon!");
+  };
+
+  const handleDownloadAttachment = (attachment: Attachment) => {
+    try {
+      // Decode the Base64 content and download the file
+      const byteCharacters = atob(attachment.content);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: attachment.contentType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachment.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast.success(`Downloaded ${attachment.filename}`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download attachment');
+    }
   };
 
   return (
@@ -84,34 +120,50 @@ ${email.text || (email.html ? 'HTML Content Available' : 'No content available')
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <span className="text-primary font-medium">
-                {email.from.name?.[0] || email.from.address[0]}
+                {email.sender_name?.[0] || email.sender_email[0]}
               </span>
             </div>
             <div>
               <p className="font-medium text-gray-800">
-                {email.from.name || email.from.address}
+                {email.sender_name || email.sender_email}
               </p>
-              <p className="text-sm text-gray-500">{email.from.address}</p>
+              <p className="text-sm text-gray-500">{email.sender_email}</p>
             </div>
           </div>
           <p className="text-sm text-gray-500">
-            {new Date(email.createdAt).toLocaleString()}
+            {new Date(email.date).toLocaleString()}
           </p>
         </div>
 
         {/* Email Content */}
         <div className="p-6 overflow-auto max-h-[50vh]">
-          {email.html ? (
-            <div 
-              dangerouslySetInnerHTML={{ __html: email.html }} 
-              className="prose prose-sm max-w-none"
-            />
-          ) : (
-            <pre className="whitespace-pre-wrap font-sans text-gray-700">
-              {email.text || "No content available"}
-            </pre>
-          )}
+          <div
+            dangerouslySetInnerHTML={{ __html: email.body }}
+            className="prose prose-sm max-w-none"
+          />
         </div>
+
+        {/* Attachments */}
+        {email.attachments && email.attachments.length > 0 && (
+          <div className="p-4 border-t bg-gray-50">
+            <h3 className="text-sm font-semibold mb-2">Attachments</h3>
+            <ul className="space-y-2">
+              {email.attachments.map((attachment, index) => (
+                <li key={index} className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">
+                    {attachment.filename}
+                  </span>
+                  <button
+                    onClick={() => handleDownloadAttachment(attachment)}
+                    className="text-sm text-blue-500 hover:text-blue-700"
+                  >
+                    Download
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="border-t p-4 bg-gray-50 flex justify-end gap-2">
@@ -131,7 +183,7 @@ ${email.text || (email.html ? 'HTML Content Available' : 'No content available')
             onClick={handleDownload}
             className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <Download size={18} /> Download
+            <Download size={18} /> Download Email
           </button>
           <button
             onClick={handleDelete}
