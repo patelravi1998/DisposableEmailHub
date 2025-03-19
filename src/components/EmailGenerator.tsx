@@ -104,6 +104,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
       onEmailGenerated(email);
       toast.success(`New email generated: ${email}`);
+      window.location.reload();
     } catch (error) {
       console.error("Email generation error:", error);
       toast.error(`Failed to generate email. Please try again. Error: ${error.message}`);
