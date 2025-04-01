@@ -9,8 +9,6 @@ import CryptoJS from 'crypto-js';
 import { useTranslation } from "react-i18next";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-
-
 const SECRET_KEY = "Cusatian@12345";
 
 const encryptData = (data: string) => {
@@ -28,7 +26,7 @@ const decryptData = (ciphertext: string) => {
 };
 
 // ✅ Set Cookie
-const setCookie = (name: string, value: string, days = 1) => {
+const setCookie = (name: string, value: string, days = 7) => {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   document.cookie = `${name}=${value}; path=/; expires=${expires}; Secure`;
 };
@@ -97,7 +95,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
 
       const data = await response.json();
       const email = data.data;
-      
+
       // ✅ Store in cookies instead of localStorage
       setCookie('temporaryEmail', encryptData(email));
       setCookie('userIp', encryptData(id));
