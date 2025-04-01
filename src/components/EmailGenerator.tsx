@@ -7,9 +7,8 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/co
 import { QRCodeSVG } from 'qrcode.react';
 import CryptoJS from 'crypto-js';
 import { useTranslation } from "react-i18next";
+import { EmailOrderForm } from './EmailOrderForm';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-
 
 const SECRET_KEY = "Cusatian@12345";
 
@@ -27,7 +26,7 @@ const decryptData = (ciphertext: string) => {
   }
 };
 
-// ✅ Set Cookie
+// ✅ Set Cookie with specific expiration date
 const setCookie = (name: string, value: string, days = 1) => {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   document.cookie = `${name}=${value}; path=/; expires=${expires}; Secure`;
@@ -56,12 +55,15 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
   const [userId, setUserId] = useState('');
   const { t } = useTranslation();
 
+
+
   useEffect(() => {
     const storedEmail = getCookie('temporaryEmail');
     if (storedEmail) {
       const decryptedEmail = decryptData(storedEmail);
       if (decryptedEmail) {
         onEmailGenerated(decryptedEmail);
+        // checkEmailExpiration(decryptedEmail);
       }
     } else {
       fetchUserId().then(generateEmail);
@@ -98,9 +100,10 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
       const data = await response.json();
       const email = data.data;
       
-      // ✅ Store in cookies instead of localStorage
       setCookie('temporaryEmail', encryptData(email));
       setCookie('userIp', encryptData(id));
+
+
 
       onEmailGenerated(email);
       toast.success(`New email generated: ${email}`);
@@ -126,8 +129,8 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
   const deleteEmail = () => {
     if (!currentEmail) return toast.error("No email address to delete");
     
-    // ✅ Remove from cookies instead of localStorage
     removeCookie('temporaryEmail');
+    removeCookie('userIp');
 
     onEmailGenerated('');
     toast.success("Email address deleted!");
@@ -189,7 +192,7 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
           <Trash2 className="w-4 h-4" />
           {t("Delete")}
         </button>
-
+        <EmailOrderForm tempEmail={currentEmail} />
         <EmailSettings onExpirationChange={() => {}} />
       </div>
     </div>

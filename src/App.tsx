@@ -8,6 +8,11 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Logout from "./pages/Logout";
+
+
 
 const queryClient = new QueryClient();
 
@@ -24,6 +29,12 @@ const App = () => (
           <Route path="/contact" element={<Contact />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/logout" element={<Logout />} />
+
+
+          
 
           {/* Language-specific routes */}
           <Route path="/:lang" element={<Index />} />
