@@ -43,6 +43,13 @@ const Index = () => {
           <p className="text-lg md:text-xl text-gray-600 mb-8">
             {t("Create instant throwaway mail addresses for Facebook, online registrations, and more. Our disposable email IDs keep your real inbox clean and secure.")}
           </p>
+          
+          {/* Added notice message */}
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8">
+            <p className="font-bold text-red-600">
+              Great news! Now your  email will be active for seven days.
+            </p>
+          </div>
         </div>
 
         <main className="max-w-3xl mx-auto">
