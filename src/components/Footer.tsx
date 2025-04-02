@@ -149,9 +149,12 @@ const countryToLanguage = {
     
     const setLanguage = async () => {
       const userLanguage = await detectUserLanguage();
+      console.log(`>>>>>>>userLanguage`,userLanguage)
       
       // Only navigate if the URL is just `/`
       if (currentPath === "/") {
+      console.log(`>>>>>>>jhgvbc`)
+        
         i18n.changeLanguage(userLanguage);
         navigate(`/${userLanguage}`);
       }
@@ -224,7 +227,7 @@ const countryToLanguage = {
           </div>
 
           {/* Newsletter */}
-          <div className="space-y-8 transform hover:scale-105 transition-transform duration-300">
+          {/* <div className="space-y-8 transform hover:scale-105 transition-transform duration-300">
             <h3 className="text-2xl font-semibold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
               {t("Subscribe to Newsletter")}
             </h3>
@@ -254,7 +257,7 @@ const countryToLanguage = {
                 {t("Privacy Policy")}
               </a>
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* Language Selector */}
