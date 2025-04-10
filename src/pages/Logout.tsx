@@ -5,6 +5,7 @@ const Logout = () => {
   const navigate = useNavigate();
   const [showDialog, setShowDialog] = useState(false);
 
+
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");

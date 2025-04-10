@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
 import { EmailGenerator } from '../components/EmailGenerator';
 import { Inbox } from '../components/Inbox';
@@ -12,6 +12,8 @@ import { useTranslation } from "react-i18next";
 const Index = () => {
   const { t } = useTranslation();
   const [currentEmail, setCurrentEmail] = useState('');
+  console.log(`>>>>>currentEmailinbox`,currentEmail)
+  const [expirationDate, setExpirationDate] = useState<string | null>(null);
   const features = [{
     icon: Shield,
     title: t("Anonymous Protection"),
@@ -30,7 +32,38 @@ const Index = () => {
     description: t("Your throwaway mail automatically deletes after use")
   }];
 
-  return <div className="min-h-screen bg-gradient-to-b from-white to-accent/20">
+  // Function to get expiration date from localStorage
+  const getExpirationDate = (email: string) => {
+    if (!email) return null;
+    const expirationKey = `emailExpiration_${email}`;
+    const expirationDateStr = localStorage.getItem(expirationKey);
+    return expirationDateStr ? new Date(expirationDateStr) : null;
+  };
+
+  // Format date to show in the message
+  const formatExpirationDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Update expiration date when currentEmail changes
+  useEffect(() => {
+    if (currentEmail) {
+      const expDate = getExpirationDate(currentEmail);
+      setExpirationDate(expDate ? formatExpirationDate(expDate) : null);
+    } else {
+      setExpirationDate(null);
+    }
+  }, [currentEmail]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-accent/20">
       <Toaster position="top-center" />
       <Navigation />
 
@@ -44,12 +77,14 @@ const Index = () => {
             {t("Create instant throwaway mail addresses for Facebook, online registrations, and more. Our disposable email IDs keep your real inbox clean and secure.")}
           </p>
           
-          {/* Added notice message */}
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8">
-            <p className="font-bold text-red-600">
-              Great news! Now your  email will be active for seven days.
-            </p>
-          </div>
+          {/* Updated notice message with dynamic expiration date */}
+          {expirationDate && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8">
+              <p className="font-bold text-blue-600">
+                Your email will expire on: {expirationDate}
+              </p>
+            </div>
+          )}
         </div>
 
         <main className="max-w-3xl mx-auto">
@@ -65,11 +100,13 @@ const Index = () => {
             {t("Why Choose Our Disposable Email Service?")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => <article key={index} className="p-6 rounded-xl bg-accent/10 hover:bg-accent/20 transition-colors">
+            {features.map((feature, index) => (
+              <article key={index} className="p-6 rounded-xl bg-accent/10 hover:bg-accent/20 transition-colors">
                 <feature.icon className="w-10 h-10 text-primary mb-4" />
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
-              </article>)}
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -106,7 +143,8 @@ const Index = () => {
       <AboutSection />
       <Testimonials />
       <Footer />
-    </div>;
+    </div>
+  );
 };
 
 export default Index;

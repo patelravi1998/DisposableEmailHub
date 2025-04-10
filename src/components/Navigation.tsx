@@ -22,6 +22,7 @@ export const Navigation = () => {
 
   // Logout function
   const handleLogout = () => {
+    window.location.reload();
     localStorage.removeItem("authToken");
     setAuthToken(null);
   };
