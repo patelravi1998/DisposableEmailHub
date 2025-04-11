@@ -8,7 +8,7 @@ import { Footer } from '../components/Footer';
 import { Toaster } from 'sonner';
 import { Shield, Lock, Mail, Clock } from 'lucide-react';
 import { useTranslation } from "react-i18next";
-
+import {LanguageSelector} from '../components/LanguageSelector'
 const Index = () => {
   const { t } = useTranslation();
   const [currentEmail, setCurrentEmail] = useState('');
@@ -30,34 +30,44 @@ const Index = () => {
     description: t("Your throwaway mail automatically deletes after use")
   }];
 
-  return <div className="min-h-screen bg-gradient-to-b from-white to-accent/20">
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-accent/20">
       <Toaster position="top-center" />
       <Navigation />
-
+  
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-32 pb-20">
         <div className="max-w-4xl mx-auto text-center mb-12">
+          {/* Language Selector */}
+          <div className="mb-6 flex justify-center">
+            <LanguageSelector />
+          </div>
+  
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             {t("Best Disposable Email Service")}
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-8">
-            {t("Create instant throwaway mail addresses for Facebook, online registrations, and more. Our disposable email IDs keep your real inbox clean and secure.")}
+            {t(
+              "Create instant throwaway mail addresses for Facebook, online registrations, and more. Our disposable email IDs keep your real inbox clean and secure."
+            )}
           </p>
-          
-          {/* Added notice message */}
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8">
-            <p className="font-bold text-red-600">
-              Great news! Now your  email will be active for seven days.
-            </p>
+  
+          {/* ✅ Centered Notice Message */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md max-w-xl w-full">
+              <p className="font-bold text-red-600 text-center">
+                Great news! Now your email will be active for seven days.
+              </p>
+            </div>
           </div>
         </div>
-
+  
         <main className="max-w-3xl mx-auto">
           <EmailGenerator onEmailGenerated={setCurrentEmail} currentEmail={currentEmail} />
           <Inbox currentEmail={currentEmail} />
         </main>
       </header>
-
+  
       {/* Features Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -65,15 +75,20 @@ const Index = () => {
             {t("Why Choose Our Disposable Email Service?")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => <article key={index} className="p-6 rounded-xl bg-accent/10 hover:bg-accent/20 transition-colors">
+            {features.map((feature, index) => (
+              <article
+                key={index}
+                className="p-6 rounded-xl bg-accent/10 hover:bg-accent/20 transition-colors"
+              >
                 <feature.icon className="w-10 h-10 text-primary mb-4" />
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
-              </article>)}
+              </article>
+            ))}
           </div>
         </div>
       </section>
-
+  
       {/* Benefits Section */}
       <section className="py-16 bg-accent/5">
         <div className="container mx-auto px-4">
@@ -102,11 +117,12 @@ const Index = () => {
           </div>
         </div>
       </section>
-
+  
       <AboutSection />
       <Testimonials />
       <Footer />
-    </div>;
-};
+    </div>
+  );
+}
 
 export default Index;
