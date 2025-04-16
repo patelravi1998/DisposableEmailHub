@@ -22,7 +22,7 @@ interface EmailViewProps {
     status: number;
     created_at: string;
     updated_at: string;
-    attachments: Attachment[];
+    attachments: string | Attachment[]; // Updated to handle both string and array
     seen?: boolean;
   } | null;
   onClose: () => void;
@@ -32,6 +32,24 @@ export const EmailView = ({ email, onClose }: EmailViewProps) => {
   const [loading, setLoading] = useState(false);
   const [processedBody, setProcessedBody] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Parse attachments
+  const getAttachments = (): Attachment[] => {
+    if (!email?.attachments) return [];
+    
+    if (typeof email.attachments === 'string') {
+      try {
+        return JSON.parse(email.attachments);
+      } catch (error) {
+        console.error('Failed to parse attachments:', error);
+        return [];
+      }
+    }
+    
+    return email.attachments;
+  };
+
+  const attachments = getAttachments();
 
   useEffect(() => {
     if (email?.body) {
@@ -101,13 +119,20 @@ ${email.body || "No content available"}
   };
 
   const handleDelete = () => {
-    console.log(`>>>>>asaaaaa`);
     toast.info("Delete feature coming soon!");
   };
 
   const handleDownloadAttachment = (attachment: Attachment) => {
     try {
-      const byteCharacters = atob(attachment.content);
+      // Ensure content is properly base64 encoded
+      let content = attachment.content;
+      
+      // If content doesn't look like base64, try to encode it
+      if (!/^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/.test(content)) {
+        content = btoa(unescape(encodeURIComponent(content)));
+      }
+
+      const byteCharacters = atob(content);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -126,7 +151,7 @@ ${email.body || "No content available"}
       toast.success(`Downloaded ${attachment.filename}`);
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Failed to download attachment');
+      toast.error(`Failed to download ${attachment.filename}`);
     }
   };
 
@@ -180,11 +205,11 @@ ${email.body || "No content available"}
         </div>
 
         {/* Attachments */}
-        {email.attachments && email.attachments.length > 0 && (
+        {attachments.length > 0 && (
           <div className="p-3 sm:p-4 border-t bg-gray-50">
             <h3 className="text-xs sm:text-sm font-semibold mb-2">Attachments</h3>
             <ul className="space-y-1 sm:space-y-2">
-              {email.attachments.map((attachment, index) => (
+              {attachments.map((attachment, index) => (
                 <li key={index} className="flex items-center justify-between">
                   <span className="text-xs sm:text-sm text-gray-700 truncate max-w-[60%]">
                     {attachment.filename}
