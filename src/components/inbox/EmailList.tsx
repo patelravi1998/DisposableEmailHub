@@ -125,13 +125,18 @@ export const EmailList = () => {
     try {
       // Parse attachments if they are in string format
       if (email.attachments && typeof email.attachments === "string") {
-        // Validate the JSON string before parsing
-        if (email.attachments.trim().startsWith("{") && email.attachments.trim().endsWith("}")) {
-          parsedAttachments = [JSON.parse(email.attachments)];
-        } else {
-          console.error("Invalid JSON string for attachments:", email.attachments);
+        try {
+          const parsed = JSON.parse(email.attachments);
+          if (Array.isArray(parsed)) {
+            parsedAttachments = parsed;
+          } else {
+            console.error("Parsed attachments is not an array:", parsed);
+          }
+        } catch (error) {
+          console.error("Failed to parse stringified attachments array:", error);
         }
-      } else if (Array.isArray(email.attachments)) {
+      }
+       else if (Array.isArray(email.attachments)) {
         // Use as-is if already an array
         parsedAttachments = email.attachments;
       }
