@@ -33,22 +33,32 @@ export const EmailView = ({ email, onClose }: EmailViewProps) => {
   const [processedBody, setProcessedBody] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Parse attachments
+  // Parse and validate attachments
   const getAttachments = (): Attachment[] => {
     if (!email?.attachments) return [];
     
-    if (typeof email.attachments === 'string') {
-      try {
-        // Handle cases where attachments might be double-encoded
-        const parsed = JSON.parse(email.attachments);
-        return Array.isArray(parsed) ? parsed : [parsed];
-      } catch (error) {
-        console.error('Failed to parse attachments:', error);
-        return [];
-      }
+    try {
+      // Parse if string
+      const parsed = typeof email.attachments === 'string' 
+        ? JSON.parse(email.attachments) 
+        : email.attachments;
+      
+      // Ensure we have an array
+      const attachmentsArray = Array.isArray(parsed) ? parsed : [parsed];
+      
+      // Validate and filter attachments
+      return attachmentsArray.filter(att => 
+        att && 
+        typeof att === 'object' && 
+        att.filename && 
+        att.content &&
+        typeof att.filename === 'string' &&
+        typeof att.content === 'string'
+      );
+    } catch (error) {
+      console.error('Failed to parse attachments:', error);
+      return [];
     }
-    
-    return email.attachments;
   };
 
   const attachments = getAttachments();
@@ -124,24 +134,19 @@ ${email.body || "No content available"}
 
   const handleDownloadAttachment = (attachment: Attachment) => {
     try {
-      // Debug log to check attachment data
-      console.log('Attachment data:', {
-        filename: attachment.filename,
-        contentType: attachment.contentType,
-        size: attachment.size,
-        contentStart: attachment.content.substring(0, 30)
-      });
+      // Validate attachment
+      if (!attachment?.content || !attachment?.filename) {
+        throw new Error('Invalid attachment data');
+      }
 
-      // Clean the base64 content
+      // Clean base64 content
       let base64Data = attachment.content;
-      
-      // Remove data URL prefix if present
       if (base64Data.startsWith('data:')) {
         base64Data = base64Data.split(',')[1];
       }
 
-      // Ensure proper base64 format
-      if (!/^[A-Za-z0-9+/=]+$/.test(base64Data)) {
+      // Validate base64
+      if (!/^[A-Za-z0-9+/=]*$/.test(base64Data)) {
         throw new Error('Invalid base64 data');
       }
 
@@ -153,17 +158,17 @@ ${email.body || "No content available"}
       }
       const byteArray = new Uint8Array(byteNumbers);
       
-      // Create blob with correct MIME type
+      // Determine MIME type
       const mimeType = attachment.contentType || 
-                       (attachment.filename.endsWith('.pdf') ? 'application/pdf' : 
-                       'application/octet-stream');
-      
+                      (attachment.filename.match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' :
+                      attachment.filename.match(/\.png$/i) ? 'image/png' :
+                      attachment.filename.match(/\.pdf$/i) ? 'application/pdf' :
+                      'application/octet-stream');
+
+      // Create and download blob
       const blob = new Blob([byteArray], { type: mimeType });
       const url = window.URL.createObjectURL(blob);
-      
-      // Create and trigger download
       const a = document.createElement('a');
-      a.style.display = 'none';
       a.href = url;
       a.download = attachment.filename;
       document.body.appendChild(a);
@@ -171,14 +176,14 @@ ${email.body || "No content available"}
       
       // Cleanup
       setTimeout(() => {
-        window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
       }, 100);
 
       toast.success(`Downloaded ${attachment.filename}`);
     } catch (error) {
       console.error('Download error:', error);
-      toast.error(`Failed to download ${attachment.filename}. ${error.message}`);
+      toast.error(`Failed to download ${attachment?.filename || 'attachment'}: ${error.message}`);
     }
   };
 
