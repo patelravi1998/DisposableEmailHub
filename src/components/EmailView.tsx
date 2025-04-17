@@ -134,13 +134,16 @@ ${email.body || "No content available"}
 
   const handleDownloadAttachment = (attachment: Attachment) => {
     try {
-      console.log(`>>>>>mamamama`,attachment)
-      // if (!attachment?.content) {
-      //   throw new Error('Attachment content is empty');
-      // }
+      if (!attachment?.content) {
+        throw new Error('No attachment content available');
+      }
   
-      const base64 = attachment.content;
-      const byteCharacters = atob(base64);
+      // Check if content is valid base64
+      if (!/^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/.test(attachment.content)) {
+        throw new Error('Invalid attachment content format');
+      }
+  
+      const byteCharacters = atob(attachment.content);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -154,8 +157,12 @@ ${email.body || "No content available"}
       a.download = attachment.filename || 'attachment';
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
   
       toast.success(`Downloaded ${attachment.filename}`);
     } catch (error) {
@@ -230,21 +237,24 @@ ${email.body || "No content available"}
               <p className="text-xs text-gray-500">
                 {Math.round(attachment.size / 1024)} KB • {attachment.contentType}
               </p>
-              {/* {!attachment.content && (
+              {!attachment.content && (
                 <p className="text-xs text-red-500 mt-1">
-                  Server did not provide file content
+                  File content not available
                 </p>
-              )} */}
+              )}
             </div>
           </div>
-       (
+          {attachment.content ? (
             <button
               onClick={() => handleDownloadAttachment(attachment)}
               className="text-xs sm:text-sm text-blue-500 hover:text-blue-700 hover:underline"
+              disabled={!attachment.content}
             >
               Download
             </button>
-          ) 
+          ) : (
+            <span className="text-xs text-gray-400">Unavailable</span>
+          )}
         </li>
       ))}
     </ul>
