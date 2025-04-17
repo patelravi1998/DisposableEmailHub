@@ -135,9 +135,9 @@ ${email.body || "No content available"}
   const handleDownloadAttachment = (attachment: Attachment) => {
     try {
       console.log(`>>>>>mamamama`,attachment)
-      if (!attachment?.content) {
-        throw new Error('Attachment content is empty');
-      }
+      // if (!attachment?.content) {
+      //   throw new Error('Attachment content is empty');
+      // }
   
       const base64 = attachment.content;
       const byteCharacters = atob(base64);
