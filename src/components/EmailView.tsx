@@ -229,28 +229,35 @@ ${email.body || "No content available"}
         {attachments.length > 0 && (
   <div className="p-3 sm:p-4 border-t bg-gray-50">
     <h3 className="text-xs sm:text-sm font-semibold mb-2">Attachments</h3>
-    <ul className="space-y-1 sm:space-y-2">
+    <ul className="space-y-2">
       {attachments.map((attachment, index) => (
-        <li key={index} className="flex items-center justify-between">
+        <li key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded">
           <div className="flex items-center gap-2">
-            <span className="text-xs sm:text-sm text-gray-700 truncate max-w-[60%]">
-              {attachment.filename}
-            </span>
-            {!attachment.content && (
-              <span className="text-xs text-red-500">(No content)</span>
-            )}
+            <Download size={16} className="text-gray-500" />
+            <div>
+              <p className="text-xs sm:text-sm text-gray-700">
+                {attachment.filename}
+              </p>
+              <p className="text-xs text-gray-500">
+                {Math.round(attachment.size / 1024)} KB • {attachment.contentType}
+              </p>
+              {!attachment.content && (
+                <p className="text-xs text-red-500 mt-1">
+                  Server did not provide file content
+                </p>
+              )}
+            </div>
           </div>
-          <button
-            onClick={() => attachment.content ? handleDownloadAttachment(attachment) : null}
-            disabled={!attachment.content}
-            className={`text-xs sm:text-sm ${
-              attachment.content 
-                ? 'text-blue-500 hover:text-blue-700 hover:underline' 
-                : 'text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            {attachment.content ? 'Download' : 'Unavailable'}
-          </button>
+          {attachment.content ? (
+            <button
+              onClick={() => handleDownloadAttachment(attachment)}
+              className="text-xs sm:text-sm text-blue-500 hover:text-blue-700 hover:underline"
+            >
+              Download
+            </button>
+          ) : (
+            <span className="text-xs text-gray-400">Unavailable</span>
+          )}
         </li>
       ))}
     </ul>
