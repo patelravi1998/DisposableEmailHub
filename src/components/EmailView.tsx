@@ -22,7 +22,7 @@ interface EmailViewProps {
     status: number;
     created_at: string;
     updated_at: string;
-    attachments: string | Attachment[]; // Updated to handle both string and array
+    attachments: string | Attachment[];
     seen?: boolean;
   } | null;
   onClose: () => void;
@@ -39,7 +39,9 @@ export const EmailView = ({ email, onClose }: EmailViewProps) => {
     
     if (typeof email.attachments === 'string') {
       try {
-        return JSON.parse(email.attachments);
+        // Handle cases where attachments might be double-encoded
+        const parsed = JSON.parse(email.attachments);
+        return Array.isArray(parsed) ? parsed : [parsed];
       } catch (error) {
         console.error('Failed to parse attachments:', error);
         return [];
@@ -53,7 +55,6 @@ export const EmailView = ({ email, onClose }: EmailViewProps) => {
 
   useEffect(() => {
     if (email?.body) {
-      // Process the email body to add target="_blank" to all links
       const parser = new DOMParser();
       const doc = parser.parseFromString(email.body, 'text/html');
       const links = doc.querySelectorAll('a');
@@ -67,7 +68,6 @@ export const EmailView = ({ email, onClose }: EmailViewProps) => {
     }
   }, [email?.body]);
 
-  // Handle click outside to close modal
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -124,34 +124,61 @@ ${email.body || "No content available"}
 
   const handleDownloadAttachment = (attachment: Attachment) => {
     try {
-      // Ensure content is properly base64 encoded
-      let content = attachment.content;
+      // Debug log to check attachment data
+      console.log('Attachment data:', {
+        filename: attachment.filename,
+        contentType: attachment.contentType,
+        size: attachment.size,
+        contentStart: attachment.content.substring(0, 30)
+      });
+
+      // Clean the base64 content
+      let base64Data = attachment.content;
       
-      // If content doesn't look like base64, try to encode it
-      if (!/^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/.test(content)) {
-        content = btoa(unescape(encodeURIComponent(content)));
+      // Remove data URL prefix if present
+      if (base64Data.startsWith('data:')) {
+        base64Data = base64Data.split(',')[1];
       }
 
-      const byteCharacters = atob(content);
+      // Ensure proper base64 format
+      if (!/^[A-Za-z0-9+/=]+$/.test(base64Data)) {
+        throw new Error('Invalid base64 data');
+      }
+
+      // Decode base64
+      const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: attachment.contentType });
+      
+      // Create blob with correct MIME type
+      const mimeType = attachment.contentType || 
+                       (attachment.filename.endsWith('.pdf') ? 'application/pdf' : 
+                       'application/octet-stream');
+      
+      const blob = new Blob([byteArray], { type: mimeType });
       const url = window.URL.createObjectURL(blob);
+      
+      // Create and trigger download
       const a = document.createElement('a');
+      a.style.display = 'none';
       a.href = url;
       a.download = attachment.filename;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      
+      // Cleanup
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
 
       toast.success(`Downloaded ${attachment.filename}`);
     } catch (error) {
       console.error('Download error:', error);
-      toast.error(`Failed to download ${attachment.filename}`);
+      toast.error(`Failed to download ${attachment.filename}. ${error.message}`);
     }
   };
 
@@ -216,7 +243,7 @@ ${email.body || "No content available"}
                   </span>
                   <button
                     onClick={() => handleDownloadAttachment(attachment)}
-                    className="text-xs sm:text-sm text-blue-500 hover:text-blue-700"
+                    className="text-xs sm:text-sm text-blue-500 hover:text-blue-700 hover:underline"
                   >
                     Download
                   </button>
