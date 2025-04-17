@@ -134,22 +134,16 @@ ${email.body || "No content available"}
 
   const handleDownloadAttachment = (attachment: Attachment) => {
     try {
-      // Validate attachment
-      if (!attachment?.content || !attachment?.filename) {
-        throw new Error('Invalid attachment data');
+      if (!attachment?.content) {
+        throw new Error('Attachment content is empty');
       }
-
-      // Clean base64 content
+  
+      // Remove data URL prefix if present
       let base64Data = attachment.content;
       if (base64Data.startsWith('data:')) {
         base64Data = base64Data.split(',')[1];
       }
-
-      // Validate base64
-      if (!/^[A-Za-z0-9+/=]*$/.test(base64Data)) {
-        throw new Error('Invalid base64 data');
-      }
-
+  
       // Decode base64
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length);
@@ -158,16 +152,11 @@ ${email.body || "No content available"}
       }
       const byteArray = new Uint8Array(byteNumbers);
       
-      // Determine MIME type
-      const mimeType = attachment.contentType || 
-                      (attachment.filename.match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' :
-                      attachment.filename.match(/\.png$/i) ? 'image/png' :
-                      attachment.filename.match(/\.pdf$/i) ? 'application/pdf' :
-                      'application/octet-stream');
-
-      // Create and download blob
-      const blob = new Blob([byteArray], { type: mimeType });
+      // Create blob
+      const blob = new Blob([byteArray], { type: attachment.contentType });
       const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
       const a = document.createElement('a');
       a.href = url;
       a.download = attachment.filename;
@@ -179,11 +168,11 @@ ${email.body || "No content available"}
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       }, 100);
-
+  
       toast.success(`Downloaded ${attachment.filename}`);
     } catch (error) {
       console.error('Download error:', error);
-      toast.error(`Failed to download ${attachment?.filename || 'attachment'}: ${error.message}`);
+      toast.error(`Failed to download ${attachment.filename}: ${error.message}`);
     }
   };
 
