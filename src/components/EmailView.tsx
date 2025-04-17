@@ -237,16 +237,14 @@ ${email.body || "No content available"}
               )} */}
             </div>
           </div>
-          {attachment.content ? (
+       (
             <button
               onClick={() => handleDownloadAttachment(attachment)}
               className="text-xs sm:text-sm text-blue-500 hover:text-blue-700 hover:underline"
             >
               Download
             </button>
-          ) : (
-            <span className="text-xs text-gray-400">Unavailable</span>
-          )}
+          ) 
         </li>
       ))}
     </ul>
