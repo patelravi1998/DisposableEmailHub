@@ -121,36 +121,37 @@ export const EmailList = () => {
 
   const onViewEmail = (email: Email) => {
     let parsedAttachments: Attachment[] = [];
-
+  
     try {
       // Parse attachments if they are in string format
       if (email.attachments && typeof email.attachments === "string") {
         try {
-          const parsed = JSON.parse(email.attachments);
-          if (Array.isArray(parsed)) {
-            parsedAttachments = parsed;
-          } else {
-            console.error("Parsed attachments is not an array:", parsed);
-          }
+          parsedAttachments = JSON.parse(email.attachments);
+          // Ensure we have an array and add empty content if missing
+          parsedAttachments = Array.isArray(parsedAttachments) 
+            ? parsedAttachments.map(att => ({
+                ...att,
+                content: att.content || "" // Add empty content if missing
+              }))
+            : [];
         } catch (error) {
-          console.error("Failed to parse stringified attachments array:", error);
+          console.error("Failed to parse attachments:", error);
         }
-      }
-       else if (Array.isArray(email.attachments)) {
+      } else if (Array.isArray(email.attachments)) {
         // Use as-is if already an array
-        parsedAttachments = email.attachments;
+        parsedAttachments = email.attachments.map(att => ({
+          ...att,
+          content: att.content || "" // Add empty content if missing
+        }));
       }
     } catch (error) {
-      console.error("Failed to parse attachments:", error);
+      console.error("Error processing attachments:", error);
     }
-
-    // Create a validated email object
-    const validatedEmail = {
+  
+    setSelectedEmail({
       ...email,
-      attachments: parsedAttachments, // Use the parsed or default empty array
-    };
-
-    setSelectedEmail(validatedEmail);
+      attachments: parsedAttachments
+    });
   };
 
   const closeEmailView = () => {

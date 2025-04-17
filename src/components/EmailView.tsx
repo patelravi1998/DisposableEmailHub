@@ -38,23 +38,23 @@ export const EmailView = ({ email, onClose }: EmailViewProps) => {
     if (!email?.attachments) return [];
     
     try {
-      // Parse if string
+      // Handle both string and array cases
       const parsed = typeof email.attachments === 'string' 
-        ? JSON.parse(email.attachments) 
+        ? JSON.parse(email.attachments)
         : email.attachments;
-      
+  
       // Ensure we have an array
       const attachmentsArray = Array.isArray(parsed) ? parsed : [parsed];
       
-      // Validate and filter attachments
-      return attachmentsArray.filter(att => 
-        att && 
-        typeof att === 'object' && 
-        att.filename && 
-        att.content &&
-        typeof att.filename === 'string' &&
-        typeof att.content === 'string'
-      );
+      // Validate and normalize attachments
+      return attachmentsArray
+        .filter(att => att && typeof att === 'object')
+        .map(att => ({
+          filename: att.filename || 'unnamed-file',
+          content: att.content || '',
+          contentType: att.contentType || 'application/octet-stream',
+          size: att.size || 0
+        }));
     } catch (error) {
       console.error('Failed to parse attachments:', error);
       return [];
@@ -238,25 +238,35 @@ ${email.body || "No content available"}
 
         {/* Attachments */}
         {attachments.length > 0 && (
-          <div className="p-3 sm:p-4 border-t bg-gray-50">
-            <h3 className="text-xs sm:text-sm font-semibold mb-2">Attachments</h3>
-            <ul className="space-y-1 sm:space-y-2">
-              {attachments.map((attachment, index) => (
-                <li key={index} className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm text-gray-700 truncate max-w-[60%]">
-                    {attachment.filename}
-                  </span>
-                  <button
-                    onClick={() => handleDownloadAttachment(attachment)}
-                    className="text-xs sm:text-sm text-blue-500 hover:text-blue-700 hover:underline"
-                  >
-                    Download
-                  </button>
-                </li>
-              ))}
-            </ul>
+  <div className="p-3 sm:p-4 border-t bg-gray-50">
+    <h3 className="text-xs sm:text-sm font-semibold mb-2">Attachments</h3>
+    <ul className="space-y-1 sm:space-y-2">
+      {attachments.map((attachment, index) => (
+        <li key={index} className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs sm:text-sm text-gray-700 truncate max-w-[60%]">
+              {attachment.filename}
+            </span>
+            {!attachment.content && (
+              <span className="text-xs text-red-500">(No content)</span>
+            )}
           </div>
-        )}
+          <button
+            onClick={() => attachment.content ? handleDownloadAttachment(attachment) : null}
+            disabled={!attachment.content}
+            className={`text-xs sm:text-sm ${
+              attachment.content 
+                ? 'text-blue-500 hover:text-blue-700 hover:underline' 
+                : 'text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {attachment.content ? 'Download' : 'Unavailable'}
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
         {/* Actions */}
         <div className="border-t p-2 sm:p-4 bg-gray-50 flex flex-wrap justify-center gap-1 sm:gap-2">
