@@ -134,40 +134,28 @@ ${email.body || "No content available"}
 
   const handleDownloadAttachment = (attachment: Attachment) => {
     try {
+      console.log(`>>>>>mamamama`,attachment)
       if (!attachment?.content) {
         throw new Error('Attachment content is empty');
       }
   
-      // Remove data URL prefix if present
-      let base64Data = attachment.content;
-      if (base64Data.startsWith('data:')) {
-        base64Data = base64Data.split(',')[1];
-      }
-  
-      // Decode base64
-      const byteCharacters = atob(base64Data);
+      const base64 = attachment.content;
+      const byteCharacters = atob(base64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      
-      // Create blob
       const blob = new Blob([byteArray], { type: attachment.contentType });
       const url = window.URL.createObjectURL(blob);
-      
-      // Create download link
+  
       const a = document.createElement('a');
       a.href = url;
-      a.download = attachment.filename;
+      a.download = attachment.filename || 'attachment';
       document.body.appendChild(a);
       a.click();
-      
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 100);
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
   
       toast.success(`Downloaded ${attachment.filename}`);
     } catch (error) {
@@ -175,6 +163,7 @@ ${email.body || "No content available"}
       toast.error(`Failed to download ${attachment.filename}: ${error.message}`);
     }
   };
+  
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in p-2 sm:p-4">
@@ -241,11 +230,11 @@ ${email.body || "No content available"}
               <p className="text-xs text-gray-500">
                 {Math.round(attachment.size / 1024)} KB • {attachment.contentType}
               </p>
-              {!attachment.content && (
+              {/* {!attachment.content && (
                 <p className="text-xs text-red-500 mt-1">
                   Server did not provide file content
                 </p>
-              )}
+              )} */}
             </div>
           </div>
           {attachment.content ? (
