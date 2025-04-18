@@ -106,8 +106,7 @@ export const EmailView = ({ email, onClose }: EmailViewProps) => {
       const emailContent = `
 From: ${email.sender_name} <${email.sender_email}>
 Subject: ${email.subject}
-Date: ${new Date(email.date).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
-
+Date: ${new Date(email.date).toLocaleString()}
 ${email.body || "No content available"}
       `.trim();
 
