@@ -205,18 +205,7 @@ export const EmailList = () => {
               <TableCell>{email.subject || "No Subject"}</TableCell>
               <TableCell className="text-right text-gray-500">
                 {email.date
-                  ? new Date(email.date)
-                      .toLocaleString("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false,
-                        timeZone: "UTC",
-                      })
-                      .replace(",", "")
+                  ? new Date(email.date).toLocaleString()
                   : "Unknown Date"}
               </TableCell>
               <TableCell>
