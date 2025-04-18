@@ -131,6 +131,7 @@ ${email.body || "No content available"}
   const handleDelete = () => {
     toast.info("Delete feature coming soon!");
   };
+
   const handleDownloadAttachment = (attachment: Attachment) => {
     try {
       if (!attachment.content) {
@@ -170,126 +171,132 @@ ${email.body || "No content available"}
       toast.error(`Failed to download: ${error.message}`);
     }
   };
-  
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in p-2 sm:p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4">
       <div 
         ref={modalRef}
-        className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl mx-4 animate-scale-in flex flex-col"
+        className="bg-white rounded-lg w-full h-full sm:max-w-4xl sm:max-h-[90vh] sm:h-auto overflow-hidden shadow-xl mx-0 sm:mx-4 flex flex-col"
       >
         {/* Header */}
-        <div className="border-b p-3 sm:p-4 flex items-center justify-between bg-gradient-to-r from-primary/10 to-purple-500/10">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 truncate">
-            {email.subject}
-          </h2>
+        <div className="border-b p-2 sm:p-4 flex items-center justify-between bg-gradient-to-r from-primary/10 to-purple-500/10 sticky top-0 z-10">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm sm:text-xl font-semibold text-gray-800 truncate">
+              {email.subject}
+            </h2>
+            <p className="text-xs text-gray-500 truncate sm:hidden">
+              {email.sender_name || email.sender_email}
+            </p>
+          </div>
           <button 
             onClick={onClose}
-            className="p-1 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1 ml-2 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Close"
           >
-            <X size={18} className="sm:size-5" />
+            <X size={18} />
           </button>
         </div>
 
         {/* Email Details */}
-        <div className="p-3 sm:p-4 border-b bg-gray-50">
-          <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="p-2 sm:p-4 border-b bg-gray-50">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <span className="text-primary font-medium text-sm sm:text-base">
                 {email.sender_name?.[0] || email.sender_email[0]}
               </span>
             </div>
             <div className="min-w-0">
-              <p className="font-medium text-gray-800 text-sm sm:text-base truncate">
+              <p className="font-medium text-gray-800 text-sm sm:text-base">
                 {email.sender_name || email.sender_email}
               </p>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">
+              <p className="text-xs sm:text-sm text-gray-500 break-all">
                 {email.sender_email}
+              </p>
+              <p className="text-xs text-gray-500 mt-1 sm:mt-0">
+                {new Date(email.date).toLocaleString()}
               </p>
             </div>
           </div>
-          <p className="text-xs sm:text-sm text-gray-500">
-            {new Date(email.date).toLocaleString()}
-          </p>
         </div>
 
         {/* Email Content */}
-        <div className="p-4 overflow-auto flex-1 max-h-[50vh]">
+        <div className="p-3 sm:p-4 overflow-auto flex-1">
           <div
             dangerouslySetInnerHTML={{ __html: processedBody || email.body }}
-            className="prose prose-sm max-w-none text-sm sm:text-base"
+            className="prose prose-sm max-w-none text-sm sm:text-base break-words"
           />
         </div>
 
         {/* Attachments */}
         {attachments.length > 0 && (
-  <div className="p-3 sm:p-4 border-t bg-gray-50">
-    <h3 className="text-xs sm:text-sm font-semibold mb-2">Attachments</h3>
-    <ul className="space-y-2">
-      {attachments.map((attachment, index) => (
-        <li key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded">
-          <div className="flex items-center gap-2">
-            <Download size={16} className="text-gray-500" />
-            <div>
-              <p className="text-xs sm:text-sm text-gray-700">
-                {attachment.filename}
-              </p>
-              <p className="text-xs text-gray-500">
-                {Math.round(attachment.size / 1024)} KB • {attachment.contentType}
-              </p>
-              {!attachment.content && (
-                <p className="text-xs text-red-500 mt-1">
-                  File content not available
-                </p>
-              )}
-            </div>
+          <div className="p-2 sm:p-4 border-t bg-gray-50">
+            <h3 className="text-xs sm:text-sm font-semibold mb-2">Attachments</h3>
+            <ul className="space-y-2">
+              {attachments.map((attachment, index) => (
+                <li key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Download size={16} className="text-gray-500 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-700 truncate">
+                        {attachment.filename}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {Math.round(attachment.size / 1024)} KB • {attachment.contentType.split('/')[1] || attachment.contentType}
+                      </p>
+                    </div>
+                  </div>
+                  {attachment.content ? (
+                    <button
+                      onClick={() => handleDownloadAttachment(attachment)}
+                      className="text-xs sm:text-sm text-blue-500 hover:text-blue-700 px-2 py-1"
+                      disabled={!attachment.content}
+                    >
+                      <span className="hidden sm:inline">Download</span>
+                      <span className="sm:hidden">Get</span>
+                    </button>
+                  ) : (
+                    <span className="text-xs text-gray-400 px-2">Unavailable</span>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
-          {attachment.content ? (
-            <button
-              onClick={() => handleDownloadAttachment(attachment)}
-              className="text-xs sm:text-sm text-blue-500 hover:text-blue-700 hover:underline"
-              disabled={!attachment.content}
-            >
-              Download
-            </button>
-          ) : (
-            <span className="text-xs text-gray-400">Unavailable</span>
-          )}
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
+        )}
 
         {/* Actions */}
-        <div className="border-t p-2 sm:p-4 bg-gray-50 flex flex-wrap justify-center gap-1 sm:gap-2">
+        <div className="border-t p-2 bg-gray-50 flex justify-around sm:justify-center gap-1 sm:gap-2 sticky bottom-0 z-10">
           <button
             onClick={handleReply}
-            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            className="flex flex-col items-center justify-center p-2 text-xs text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Reply"
           >
-            <Reply size={14} className="sm:size-4" /> 
-            <span className="hidden sm:inline">Reply</span>
+            <Reply size={16} />
+            <span>Reply</span>
           </button>
           <button
             onClick={handleForward}
-            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            className="flex flex-col items-center justify-center p-2 text-xs text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Forward"
           >
-            <Forward size={14} className="sm:size-4" /> 
-            <span className="hidden sm:inline">Forward</span>
+            <Forward size={16} />
+            <span>Forward</span>
           </button>
           <button
             onClick={handleDownload}
-            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            className="flex flex-col items-center justify-center p-2 text-xs text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Download"
           >
-            <Download size={14} className="sm:size-4" /> 
-            <span className="hidden sm:inline">Download Email</span>
+            <Download size={16} />
+            <span className="hidden sm:inline">Download</span>
+            <span className="sm:hidden">Save</span>
           </button>
           <button
             onClick={handleDelete}
-            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 rounded-full transition-colors"
+            className="flex flex-col items-center justify-center p-2 text-xs text-red-600 hover:bg-red-50 rounded-full transition-colors"
+            aria-label="Delete"
           >
-            <Trash2 size={14} className="sm:size-4" /> 
-            <span className="hidden sm:inline">Delete</span>
+            <Trash2 size={16} />
+            <span>Delete</span>
           </button>
         </div>
       </div>
