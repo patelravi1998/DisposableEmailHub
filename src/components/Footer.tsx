@@ -177,12 +177,12 @@ const countryToLanguage = {
                 </div>
                 <p className="text-lg">{t("Spaze Itech Park ,Gurugram ,Haryana ,India")}</p>
               </div>
-              <div className="flex items-center gap-4 text-gray-600 hover:text-primary transition-colors group">
+              {/* <div className="flex items-center gap-4 text-gray-600 hover:text-primary transition-colors group">
                 <div className="glass p-3 rounded-xl group-hover:scale-110 transition-transform">
                   <Phone className="w-5 h-5" />
                 </div>
                 <p className="text-lg">+91 8921281156</p>
-              </div>
+              </div> */}
               <div className="flex items-center gap-4 text-gray-600 hover:text-primary transition-colors group">
                 <div className="glass p-3 rounded-xl group-hover:scale-110 transition-transform">
                   <Mail className="w-5 h-5" />
