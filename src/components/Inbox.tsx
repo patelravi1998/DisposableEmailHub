@@ -33,8 +33,11 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [infoEmail, setInfoEmail] = useState(null);
+
 
   useEffect(() => {
+    setInfoEmail(currentEmail)
     if (currentEmail) {
       refreshInbox();
     }
@@ -115,6 +118,7 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
       email.from.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (email.from.name && email.from.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+  console.log(`>>>>>>ememememe`,emails)
 
   return (
     <div className="max-w-4xl mx-auto mt-12 transform transition-all duration-500 hover:translate-y-[-2px]">
@@ -130,7 +134,7 @@ export const Inbox: React.FC<InboxProps> = ({ currentEmail }) => {
         />
 
         <div className="min-h-[400px] bg-gradient-to-b from-white to-gray-50/30">
-          <EmailList emails={filteredEmails} onViewEmail={handleViewEmail} />
+        <EmailList currentEmail={currentEmail} />
         </div>
       </div>
 

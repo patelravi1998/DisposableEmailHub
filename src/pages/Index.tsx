@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
 import { EmailGenerator } from '../components/EmailGenerator';
 import { Inbox } from '../components/Inbox';
@@ -12,6 +12,8 @@ import {LanguageSelector} from '../components/LanguageSelector'
 const Index = () => {
   const { t } = useTranslation();
   const [currentEmail, setCurrentEmail] = useState('');
+  console.log(`>>>>>currentEmailinbox`,currentEmail)
+  const [expirationDate, setExpirationDate] = useState<string | null>(null);
   const features = [{
     icon: Shield,
     title: t("Anonymous Protection"),
@@ -29,6 +31,36 @@ const Index = () => {
     title: t("Auto-Expiring"),
     description: t("Your throwaway mail automatically deletes after use")
   }];
+
+  // Function to get expiration date from localStorage
+  const getExpirationDate = (email: string) => {
+    if (!email) return null;
+    const expirationKey = `emailExpiration_${email}`;
+    const expirationDateStr = localStorage.getItem(expirationKey);
+    return expirationDateStr ? new Date(expirationDateStr) : null;
+  };
+
+  // Format date to show in the message
+  const formatExpirationDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Update expiration date when currentEmail changes
+  useEffect(() => {
+    if (currentEmail) {
+      const expDate = getExpirationDate(currentEmail);
+      setExpirationDate(expDate ? formatExpirationDate(expDate) : null);
+    } else {
+      setExpirationDate(null);
+    }
+  }, [currentEmail]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-accent/20">
@@ -51,15 +83,15 @@ const Index = () => {
               "Create instant throwaway mail addresses for Facebook, online registrations, and more. Our disposable email IDs keep your real inbox clean and secure."
             )}
           </p>
-  
-          {/* ✅ Centered Notice Message */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md max-w-xl w-full">
-              <p className="font-bold text-red-600 text-center">
-                Great news! Now your email will be active for seven days.
+          
+          {/* Updated notice message with dynamic expiration date */}
+          {expirationDate && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8">
+              <p className="font-bold text-blue-600">
+                Your email will expire on: {expirationDate}
               </p>
             </div>
-          </div>
+          )}
         </div>
   
         <main className="max-w-3xl mx-auto">
@@ -76,10 +108,7 @@ const Index = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <article
-                key={index}
-                className="p-6 rounded-xl bg-accent/10 hover:bg-accent/20 transition-colors"
-              >
+              <article key={index} className="p-6 rounded-xl bg-accent/10 hover:bg-accent/20 transition-colors">
                 <feature.icon className="w-10 h-10 text-primary mb-4" />
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
@@ -123,6 +152,6 @@ const Index = () => {
       <Footer />
     </div>
   );
-}
+};
 
 export default Index;

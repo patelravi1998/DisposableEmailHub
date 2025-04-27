@@ -9,18 +9,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { decryptData } from "../encryption"; // Import decryption
+import { decryptData } from "../encryption";
 import { useTranslation } from "react-i18next";
-import { EmailView } from "../EmailView"; // Import EmailView component
+import { EmailView } from "../EmailView";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Attachment {
   filename: string;
-  content: string; // Base64 encoded content
+  content: string;
   contentType: string;
   size: number;
 }
+
+
+type EmailListProps = {
+  currentEmail: string;
+};
+
+
+
+
 
 interface Email {
   id: string;
@@ -34,123 +43,150 @@ interface Email {
   status: number;
   created_at: string;
   updated_at: string;
-  attachments?: string | Attachment[]; // Can be a string or an array
-  seen?: boolean; // Add the `seen` property if it exists in your data
+  attachments?: string | Attachment[];
+  seen?: boolean;
 }
 
-export const EmailList = () => {
+const getCookie = (name: string) => {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + "="))
+    ?.split('=')[1] || null;
+};
+
+export const EmailList = ({ currentEmail }: EmailListProps) => {
+  console.log(`>>>>>emailsDatahhhbbbbbb`,currentEmail)
+
   const { t } = useTranslation();
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [showSplash, setShowSplash] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [propdata, setPropData] = useState(null);
+  console.log(`>>>>>emailshhhhhhhhhhhhh`,emails)
+
 
   useEffect(() => {
+  setPropData(currentEmail)
+
+
     const fetchEmails = async () => {
-      console.log(`>>>>>sacveee`);
+    console.log(`>>>>>emailsDatahhh`,currentEmail)
+
       setError(null);
-      const getCookie = (name: string) => {
-        return (
-          document.cookie
-            .split("; ")
-            .find((row) => row.startsWith(name + "="))
-            ?.split("=")[1] || null
-        );
-      };
+      setIsRefreshing(true);
+      console.log(`>>>>>>selectedEmailhamamam`,selectedEmail)
+      console.log(`>>>>>>emailskonkon`,emails)
 
-      const storedIp = getCookie("userIp");
-      console.log(`>>>>storedIp`, storedIp);
+      
+      const authToken = localStorage.getItem('authToken');
+      let temporaryEmail="";
+      let ipaddress=""
 
-      const encryptedEmail = getCookie("temporaryEmail");
-      if (!encryptedEmail) {
-        // toast.error("No temporary email found!");
-        return;
-      }
+        console.log(`>>>>>elelel`)
 
-      if (!storedIp || !encryptedEmail) {
-        setLoading(false);
-        return;
-      }
+        if (authToken) {
+          console.log(`>>>>>>auth`)
+          const purchasedEmails = JSON.parse(localStorage.getItem('purchasedEmails') || '[]');
+          console.log(`>>>>>>purchasedEmails`,purchasedEmails)
+          
+          if (purchasedEmails.length > 0) {
+            console.log(`>>>>>>>>ravi`)
+            const mailCurrent=localStorage.getItem('goat')
+            for(let res of purchasedEmails){
+              if(res.email===mailCurrent){
+                temporaryEmail = res.email;
+                ipaddress = res.ipaddress;
+                break
+              }
+            }
 
-      const temporaryEmail = decryptData(encryptedEmail); // Decrypt email before using
-      const ipaddress = decryptData(storedIp); // Decrypt email before using
+
+          }
+        } else {
+          const encryptedEmail = getCookie('temporaryEmail');
+          const storedIp = getCookie('userIp');
+          
+          if (!encryptedEmail || !storedIp) {
+            setLoading(false);
+            setIsRefreshing(false);
+            return;
+          }
+          
+          temporaryEmail = decryptData(encryptedEmail);
+          ipaddress = decryptData(storedIp);
+        }
+  
+        if (!temporaryEmail || !ipaddress) {
+          console.log(`>>>>>akakaka`)
+          setLoading(false);
+          setIsRefreshing(false);
+          return;
+        }
+        console.log(`>>>>>mmmmmmmmmmm`)
+
+
+
 
       try {
+        console.log(`>>>>>>ipaddresslist`,ipaddress)
+        console.log(`>>>>>>temporaryEmaillist`,temporaryEmail)
+
+
         const response = await fetch(
           `${API_BASE_URL}/users/userMails?ipadress=${ipaddress}&temporaryEmail=${temporaryEmail}`
         );
 
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
         const result = await response.json();
-        console.log(`>>>> API Result: ${JSON.stringify(result)}`);
-
+        console.log(`>>>>>resultlist${JSON.stringify(result)}`)
+        
         if (result?.status && Array.isArray(result?.data)) {
-          setEmails((prevEmails) => {
-            const newEmails = result.data.filter(
-              (newEmail: Email) =>
-                !prevEmails.some((email) => email.id === newEmail.id)
-            );
-            return [...prevEmails, ...newEmails];
-          });
+          setEmails(result.data);
         } else {
           throw new Error("Invalid data structure received.");
         }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An unexpected error occurred."
-        );
+        setError(err instanceof Error ? err.message : "An unexpected error occurred.");
       } finally {
         setLoading(false);
+        setIsRefreshing(false);
       }
     };
 
-    fetchEmails(); // Initial fetch
+    fetchEmails();
 
     const interval = setInterval(() => {
       setShowSplash(true);
-      setTimeout(() => setShowSplash(false), 1200);
       fetchEmails();
+      setTimeout(() => setShowSplash(false), 1000);
     }, 10000);
 
     return () => clearInterval(interval);
   }, []);
 
   const onViewEmail = (email: Email) => {
+    if (isRefreshing) return; // Don't open email view during refresh
+    
     let parsedAttachments: Attachment[] = [];
-  
     try {
-      // Parse attachments if they are in string format
       if (email.attachments && typeof email.attachments === "string") {
-        try {
-          parsedAttachments = JSON.parse(email.attachments);
-          // Ensure we have an array and add empty content if missing
-          parsedAttachments = Array.isArray(parsedAttachments) 
-            ? parsedAttachments.map(att => ({
-                ...att,
-                content: att.content || "" // Add empty content if missing
-              }))
-            : [];
-        } catch (error) {
-          console.error("Failed to parse attachments:", error);
+        if (email.attachments.trim().startsWith("{") && email.attachments.trim().endsWith("}")) {
+          parsedAttachments = [JSON.parse(email.attachments)];
         }
       } else if (Array.isArray(email.attachments)) {
-        // Use as-is if already an array
-        parsedAttachments = email.attachments.map(att => ({
-          ...att,
-          content: att.content || "" // Add empty content if missing
-        }));
+        parsedAttachments = email.attachments;
       }
     } catch (error) {
       console.error("Error processing attachments:", error);
     }
-  
+
     setSelectedEmail({
       ...email,
-      attachments: parsedAttachments
+      attachments: parsedAttachments,
     });
   };
 
@@ -159,7 +195,13 @@ export const EmailList = () => {
   };
 
   if (loading) {
-    return <p className="text-center py-4">Loading emails...</p>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="w-full max-w-md mx-auto">
+          <div className="h-2 bg-blue-500 animate-pulse rounded-full"></div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -172,12 +214,11 @@ export const EmailList = () => {
 
   return (
     <div className="relative">
-      <div
-        className={cn(
-          "absolute top-0 left-0 w-0 h-2 bg-blue-500 transition-all duration-1000",
-          showSplash && "w-full"
-        )}
-      />
+      {/* Blue swipe loading animation */}
+      <div className={cn(
+        "absolute top-0 left-0 w-full h-1 bg-blue-500 transition-all duration-500",
+        showSplash ? "opacity-100" : "opacity-0"
+      )}></div>
 
       <Table>
         <TableHeader>
@@ -196,7 +237,6 @@ export const EmailList = () => {
                 "hover:bg-accent/30 transition-colors cursor-pointer",
                 !email.seen && "font-medium"
               )}
-              style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => onViewEmail(email)}
             >
               <TableCell className="font-medium">
@@ -205,7 +245,16 @@ export const EmailList = () => {
               <TableCell>{email.subject || "No Subject"}</TableCell>
               <TableCell className="text-right text-gray-500">
                 {email.date
-                  ? new Date(email.date).toLocaleString()
+                  ? new Date(email.date).toLocaleString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false,
+                      timeZone: "UTC",
+                    }).replace(",", "")
                   : "Unknown Date"}
               </TableCell>
               <TableCell>
