@@ -32,6 +32,9 @@ export const Navigation = () => {
     { path: "/about", label: t("About") },
     { path: "/contact", label: t("Contact") },
     { path: "/blog", label: t("Blog") },
+    { path: "/privacy-policy", label: t("PrivacyPolicy") },
+    { path: "/terms-of-service", label: t("TermsAndConditions") },
+
   ];
 
   if (!authToken) {

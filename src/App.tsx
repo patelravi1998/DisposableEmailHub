@@ -12,6 +12,8 @@ import Maintenance from "./pages/Maintenance";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Logout from "./pages/Logout";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
 
 
 
@@ -33,6 +35,8 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsAndConditions />} />
 
 
           
@@ -43,6 +47,8 @@ const App = () => (
           <Route path="/:lang/contact" element={<Contact />} />
           <Route path="/:lang/blog" element={<Blog />} />
           <Route path="/:lang/blog/:slug" element={<BlogPost />} />
+          <Route path="/:lang/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/:lang/terms-of-service" element={<TermsAndConditions />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

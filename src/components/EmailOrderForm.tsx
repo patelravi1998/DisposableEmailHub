@@ -6,6 +6,7 @@ import moment from 'moment';
 import { decryptData } from "./encryption"; // Import decryption
 import { useNavigate } from "react-router-dom";
 import ReactConfetti from 'react-confetti';
+import { downloadInvoice } from "./InvoiceTemplate";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 declare global {
@@ -172,6 +173,15 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                             // Show celebration
                             setShowCelebration(true);
                             toast.success(`Payment successful! Your email is extended for ${weeks} week(s)`);
+                            
+                            // Download invoice
+                            downloadInvoice(
+                                tempEmail,
+                                data.data.razorpay_order_id,
+                                amount,
+                                weeks,
+                                expiryDate.toString()
+                            );
                             
                             // Hide celebration after 5 seconds
                             setTimeout(() => {
