@@ -92,6 +92,12 @@ const Index = () => {
               </p>
             </div>
           )}
+          {!localStorage.getItem("authToken") && (
+  <p style={{ color: 'red', fontWeight: 'bold', marginBottom: '10px' }}>
+    🔴 Note: If you generate a new email while logged out, it won’t be saved. To keep it and manage subscriptions, please log in. Once logged in, you’ll see that email and can take a subscription from there.
+  </p>
+)}
+
         </div>
   
         <main className="max-w-3xl mx-auto">
