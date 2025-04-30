@@ -14,6 +14,9 @@ import Signup from "./pages/Signup";
 import Logout from "./pages/Logout";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
 
 
 
@@ -37,6 +40,8 @@ const App = () => (
           <Route path="/logout" element={<Logout />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsAndConditions />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/resret-password" element={<ResetPassword />} />
 
 
           

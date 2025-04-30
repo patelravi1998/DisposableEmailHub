@@ -33,7 +33,7 @@ const Login = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
       <Navigation />
-      <main className="flex-grow flex items-center justify-center p-4 mt-16"> {/* mt-16 fixes header overlap */}
+      <main className="flex-grow flex items-center justify-center p-4 mt-16">
         <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">TempMail</h1>
@@ -69,6 +69,14 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <div className="text-right mt-2">
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
             
             <button 
