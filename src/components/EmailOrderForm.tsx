@@ -90,33 +90,57 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             expiryDate.setDate(expiryDate.getDate() + (weeksToAdd * 7));
             const formattedExpiryDate = expiryDate.toISOString().split("T")[0];
             
-            // Get user data if available
-            const authToken = localStorage.getItem("authToken");
-            if (!authToken) throw new Error("User not authenticated");
+            const getCookie = (name: string) => {
+                return (
+                  document.cookie
+                    .split("; ")
+                    .find((row) => row.startsWith(name + "="))
+                    ?.split("=")[1] || null
+                );
+            };
+    
+            const storedIp = getCookie("userIp");
+            const purchasedEmails = JSON.parse(localStorage.getItem('purchasedEmails') || '[]');
+            let ipaddress = "";
             
-            // Decode token to get user info if needed
-            const userData = JSON.parse(decryptData(authToken));
-            
+            if (purchasedEmails.length > 0) {
+                for(let res of purchasedEmails) {
+                    if(res.email === tempEmail) {
+                        ipaddress = res.ipaddress;
+                        break;
+                    }
+                }
+            }
+    
+            // Make the API request
             const res = await fetch(`${API_BASE_URL}/users/create-order`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${authToken}`
+                    "Authorization": `Bearer ${localStorage.getItem("authToken")}`
                 },
                 body: JSON.stringify({
                     email: tempEmail,
                     days: weeksToAdd,
                     amount,
                     expiry_date: formattedExpiryDate,
-                    // Add mobile number if you have it
-                    // mobile: userData.mobile 
+                    ipaddress: ipaddress
                 }),
             });
     
-            const data = await res.json();
+            // First check if response is OK
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText || "Failed to create order");
+            }
     
-            if (!data?.data?.razorpay_order_id) {
-                throw new Error("Failed to create order");
+            // Then try to parse as JSON
+            const data = await res.json();
+            
+            // Additional validation
+            if (!data || !data.data || !data.data.razorpay_order_id) {
+                console.error("Invalid response structure:", data);
+                throw new Error("Invalid response from server");
             }
     
             const Razorpay: any = await loadRazorpay();
@@ -134,37 +158,33 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 name: "Temporary Email Service",
                 description: `Email extension for ${weeks} week(s)`,
                 order_id: data.data.razorpay_order_id,
-                prefill: {
-                    // Prefill contact if you have it
-                    // contact: userData.mobile || "",
-                    // email: userData.email || ""
-                },
                 handler: async function (response: any) {
                     try {
-                        // Verify payment with backend using query parameters
+                        // Verify payment with backend
                         const verifyRes = await fetch(
                             `${API_BASE_URL}/users/payment_status?razorpay_order_id=${data.data.razorpay_order_id}`,
                             {
                                 method: "GET",
                                 headers: { 
                                     "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${authToken}`
+                                    "Authorization": `Bearer ${localStorage.getItem("authToken")}`
                                 },
                             }
                         );
     
-                        let verifyData = await verifyRes.json();
-                        verifyData = verifyData.data;
+                        if (!verifyRes.ok) {
+                            throw new Error("Payment verification failed");
+                        }
     
-                        if (verifyData === true) {
-                            // Payment verified - celebrate!
+                        const verifyData = await verifyRes.json();
+                        
+                        if (verifyData?.data === true) {
+                            // Payment verified
                             localStorage.setItem(`emailExpiration_${tempEmail}`, expiryDate.toString());
                             
-                            // Show celebration
                             setShowCelebration(true);
                             toast.success(`Payment successful! Your email is extended for ${weeks} week(s)`);
                             
-                            // Download invoice
                             downloadInvoice(
                                 tempEmail,
                                 data.data.razorpay_order_id,
@@ -173,7 +193,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                                 expiryDate.toString()
                             );
                             
-                            // Hide celebration after 5 seconds
                             setTimeout(() => {
                                 setShowCelebration(false);
                                 window.location.reload();
@@ -201,8 +220,8 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             rzp.open();
     
         } catch (err) {
-            console.error(err);
-            toast.error(err.message || "Something went wrong");
+            console.error("Error in createOrder:", err);
+            toast.error(err.message || "Something went wrong while creating order");
             setShowPaymentModal(false);
         } finally {
             setIsProcessing(false);
