@@ -89,41 +89,27 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             
             expiryDate.setDate(expiryDate.getDate() + (weeksToAdd * 7));
             const formattedExpiryDate = expiryDate.toISOString().split("T")[0];
-            const getCookie = (name: string) => {
-                return (
-                  document.cookie
-                    .split("; ")
-                    .find((row) => row.startsWith(name + "="))
-                    ?.split("=")[1] || null
-                );
-              };
-        
-              const storedIp = getCookie("userIp");
-              console.log(`>>>>storedIp`, storedIp);
-              const purchasedEmails = JSON.parse(localStorage.getItem('purchasedEmails') || '[]');
-              console.log(`>>>>>>purchasedEmails`,purchasedEmails)
-              let ipaddress=""
-              if (purchasedEmails.length > 0) {
-                console.log(`>>>>>>>>ravi`)
-                for(let res of purchasedEmails){
-                  if(res.email===tempEmail){
-                    ipaddress = res.ipaddress;
-                    break
-                  }
-                }
-              }
+            
+            // Get user data if available
+            const authToken = localStorage.getItem("authToken");
+            if (!authToken) throw new Error("User not authenticated");
+            
+            // Decode token to get user info if needed
+            const userData = JSON.parse(decryptData(authToken));
+            
             const res = await fetch(`${API_BASE_URL}/users/create-order`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+                    "Authorization": `Bearer ${authToken}`
                 },
                 body: JSON.stringify({
                     email: tempEmail,
                     days: weeksToAdd,
                     amount,
                     expiry_date: formattedExpiryDate,
-                    ipaddress: ipaddress
+                    // Add mobile number if you have it
+                    // mobile: userData.mobile 
                 }),
             });
     
@@ -148,6 +134,11 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 name: "Temporary Email Service",
                 description: `Email extension for ${weeks} week(s)`,
                 order_id: data.data.razorpay_order_id,
+                prefill: {
+                    // Prefill contact if you have it
+                    // contact: userData.mobile || "",
+                    // email: userData.email || ""
+                },
                 handler: async function (response: any) {
                     try {
                         // Verify payment with backend using query parameters
@@ -157,14 +148,13 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                                 method: "GET",
                                 headers: { 
                                     "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+                                    "Authorization": `Bearer ${authToken}`
                                 },
                             }
                         );
     
                         let verifyData = await verifyRes.json();
-                        verifyData=verifyData.data
-                        console.log(`>>>>>sapnana${JSON.stringify(verifyData)}`)
+                        verifyData = verifyData.data;
     
                         if (verifyData === true) {
                             // Payment verified - celebrate!
@@ -199,6 +189,12 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                     }
                 },
                 theme: { color: "#4F46E5" },
+                modal: {
+                    ondismiss: () => {
+                        setShowPaymentModal(false);
+                        toast.info("Payment window closed");
+                    }
+                }
             };
     
             const rzp = new Razorpay(options);
