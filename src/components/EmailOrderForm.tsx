@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Loader } from "lucide-react";
 import moment from 'moment';
-import { decryptData } from "./encryption"; // Import decryption
+import { decryptData } from "./encryption";
 import { useNavigate } from "react-router-dom";
 import ReactConfetti from 'react-confetti';
 import { downloadInvoice } from "./InvoiceTemplate";
@@ -21,6 +21,8 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [mobileNumber, setMobileNumber] = useState("");
+    const [isMobileView, setIsMobileView] = useState(false);
     const pricePerWeek = 7;
     const amount = weeks * pricePerWeek;
     const freeTrialDays = 7;
@@ -30,9 +32,16 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
         // Check if user is logged in when component mounts
         const authToken = localStorage.getItem("authToken");
         setIsLoggedIn(!!authToken);
+        
+        // Check if mobile view
+        const checkIfMobile = () => {
+            setIsMobileView(window.innerWidth <= 768);
+        };
+        checkIfMobile();
+        window.addEventListener('resize', checkIfMobile);
+        return () => window.removeEventListener('resize', checkIfMobile);
     }, []);
 
-    // Function to load Razorpay dynamically
     const loadRazorpay = () => {
         return new Promise((resolve) => {
             if (window.Razorpay) {
@@ -47,7 +56,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
         });
     };
 
-    // Calculate expiry date based on current expiry + purchased weeks
     const calculateExpiryDate = (weeks: number) => {
         const currentExpiry = localStorage.getItem(`emailExpiration_${tempEmail}`);
         const startDate = currentExpiry ? new Date(currentExpiry) : new Date();
@@ -68,6 +76,10 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             navigate("/signup");
             return;
         }
+    };
+
+    const handleMobileNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setMobileNumber(e.target.value);
     };
 
     const createOrder = async () => {
@@ -112,7 +124,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 }
             }
     
-            // Make the API request
             const res = await fetch(`${API_BASE_URL}/users/create-order`, {
                 method: "POST",
                 headers: { 
@@ -124,20 +135,18 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                     days: weeksToAdd,
                     amount,
                     expiry_date: formattedExpiryDate,
-                    ipaddress: ipaddress
+                    ipaddress: ipaddress,
+                    mobileNumber: mobileNumber
                 }),
             });
     
-            // First check if response is OK
             if (!res.ok) {
                 const errorText = await res.text();
                 throw new Error(errorText || "Failed to create order");
             }
     
-            // Then try to parse as JSON
             const data = await res.json();
             
-            // Additional validation
             if (!data || !data.data || !data.data.razorpay_order_id) {
                 console.error("Invalid response structure:", data);
                 throw new Error("Invalid response from server");
@@ -148,7 +157,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 throw new Error("Razorpay SDK failed to load");
             }
     
-            // Open payment modal
             setShowPaymentModal(true);
     
             const options = {
@@ -160,7 +168,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 order_id: data.data.razorpay_order_id,
                 handler: async function (response: any) {
                     try {
-                        // Verify payment with backend
                         const verifyRes = await fetch(
                             `${API_BASE_URL}/users/payment_status?razorpay_order_id=${data.data.razorpay_order_id}`,
                             {
@@ -179,7 +186,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                         const verifyData = await verifyRes.json();
                         
                         if (verifyData?.data === true) {
-                            // Payment verified
                             localStorage.setItem(`emailExpiration_${tempEmail}`, expiryDate.toString());
                             
                             setShowCelebration(true);
@@ -231,7 +237,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
 
     return (
         <>
-            {/* Celebration Modal (shown after successful payment) */}
             {showCelebration && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center">
                     <ReactConfetti
@@ -246,7 +251,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 </div>
             )}
     
-            {/* Payment Processing Modal */}
             {showPaymentModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99]">
                     <div className="bg-white p-6 rounded-lg max-w-md">
@@ -259,7 +263,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 </div>
             )}
     
-            {/* Your existing Sheet component */}
             <Sheet>
                 <SheetTrigger>
                     <button 
@@ -290,19 +293,52 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                                         (Minimum 1 week)
                                     </span>
                                 </label>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={52}
-                                    placeholder="Enter number of weeks"
-                                    value={weeks}
-                                    onChange={(e) => setWeeks(Math.max(1, parseInt(e.target.value) || 1))}
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
+                                <div className="flex items-center">
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={52}
+                                        value={weeks}
+                                        onChange={(e) => setWeeks(Math.max(1, parseInt(e.target.value) || 1))}
+                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                    {isMobileView && (
+                                        <div className="ml-2 flex flex-col">
+                                            <button 
+                                                onClick={() => setWeeks(prev => Math.min(52, prev + 1))}
+                                                className="px-3 py-1 bg-gray-200 rounded-t-md"
+                                            >
+                                                +
+                                            </button>
+                                            <button 
+                                                onClick={() => setWeeks(prev => Math.max(1, prev - 1))}
+                                                className="px-3 py-1 bg-gray-200 rounded-b-md"
+                                            >
+                                                -
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                                 <p className="mt-1 text-xs text-gray-500">
                                     Each week costs ₹{pricePerWeek}
                                 </p>
                             </div>
+
+                            {/* Mobile number input for mobile view */}
+                            {isMobileView && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Mobile Number
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={mobileNumber}
+                                        onChange={handleMobileNumberChange}
+                                        placeholder="Enter mobile number"
+                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                            )}
     
                             <div className="bg-blue-50 p-4 rounded-lg">
                                 <div className="flex justify-between items-center">
@@ -353,5 +389,4 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             </Sheet>
         </>
     );
-    
 };
