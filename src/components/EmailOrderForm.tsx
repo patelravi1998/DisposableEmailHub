@@ -122,7 +122,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 await loadRazorpay();
                 setRazorpayLoaded(true);
             }
-
+    
             const weeksToAdd = Number(weeks);
             const currentExpiry = localStorage.getItem(`emailExpiration_${tempEmail}`);
             let expiryDate = currentExpiry ? new Date(currentExpiry) : new Date();
@@ -176,7 +176,8 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                     days: weeksToAdd,
                     amount,
                     expiry_date: formattedExpiryDate,
-                    ipaddress: ipaddress
+                    ipaddress: ipaddress,
+                    // mobileNumber: mobileNumber // Send mobile number to your backend
                 }),
             });
     
@@ -207,6 +208,14 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 name: "Temporary Email Service",
                 description: `Email extension for ${weeks} week(s)`,
                 order_id: data.data.razorpay_order_id,
+                // Add these configurations to skip Razorpay's contact collection
+                prefill: {
+                    contact: mobileNumber, // Prefill with the number you collected
+                    email: tempEmail      // Prefill with the email
+                },
+                notes: {
+                    mobileNumber: mobileNumber // Pass the mobile number as note
+                },
                 handler: async function (response: any) {
                     try {
                         console.log("Payment response:", response);
@@ -261,6 +270,14 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                     ondismiss: () => {
                         setShowPaymentModal(false);
                         toast.info("Payment window closed");
+                    }
+                },
+                // Disable Razorpay's contact collection
+                config: {
+                    display: {
+                        hide: [{
+                            method: 'contact'
+                        }]
                     }
                 }
             };
@@ -393,7 +410,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                             )}
     
                             <div className="bg-blue-50 p-4 rounded-lg">
-                                <div className="flex justify-between items-center">
+                                <div className="flex justify-between Aitems-center">
                                     <span className="font-medium">Total Amount:</span>
                                     <span className="text-xl font-bold text-blue-600">₹{amount}</span>
                                 </div>
