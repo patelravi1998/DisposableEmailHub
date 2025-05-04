@@ -176,8 +176,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                     days: weeksToAdd,
                     amount,
                     expiry_date: formattedExpiryDate,
-                    ipaddress: ipaddress,
-                    mobileNumber: mobileNumber
+                    ipaddress: ipaddress
                 }),
             });
     
