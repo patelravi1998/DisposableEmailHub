@@ -23,6 +23,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [mobileNumber, setMobileNumber] = useState("");
     const [isMobileView, setIsMobileView] = useState(false);
+    const [razorpayLoaded, setRazorpayLoaded] = useState(false);
     const pricePerWeek = 7;
     const amount = weeks * pricePerWeek;
     const freeTrialDays = 7;
@@ -39,6 +40,10 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
         };
         checkIfMobile();
         window.addEventListener('resize', checkIfMobile);
+        
+        // Preload Razorpay script
+        loadRazorpay().then(() => setRazorpayLoaded(true));
+        
         return () => window.removeEventListener('resize', checkIfMobile);
     }, []);
 
@@ -50,8 +55,14 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             }
             const script = document.createElement("script");
             script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => resolve(window.Razorpay);
-            script.onerror = () => toast.error("Failed to load Razorpay SDK");
+            script.onload = () => {
+                console.log("Razorpay script loaded successfully");
+                resolve(window.Razorpay);
+            };
+            script.onerror = () => {
+                toast.error("Failed to load Razorpay SDK");
+                console.error("Failed to load Razorpay script");
+            };
             document.body.appendChild(script);
         });
     };
@@ -82,15 +93,36 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
         setMobileNumber(e.target.value);
     };
 
+    const validateInputs = () => {
+        if (isMobileView && !mobileNumber) {
+            toast.error("Please enter your mobile number");
+            return false;
+        }
+        if (!weeks || weeks < 1) {
+            toast.error("Please select at least 1 week");
+            return false;
+        }
+        return true;
+    };
+
     const createOrder = async () => {
         if (!isLoggedIn) {
             toast.error("Please login first to purchase subscription");
             navigate("/signup");
             return;
         }
+        
+        if (!validateInputs()) {
+            return;
+        }
     
         setIsProcessing(true);
         try {
+            if (!razorpayLoaded) {
+                await loadRazorpay();
+                setRazorpayLoaded(true);
+            }
+
             const weeksToAdd = Number(weeks);
             const currentExpiry = localStorage.getItem(`emailExpiration_${tempEmail}`);
             let expiryDate = currentExpiry ? new Date(currentExpiry) : new Date();
@@ -124,6 +156,15 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 }
             }
     
+            console.log("Creating order with:", {
+                email: tempEmail,
+                days: weeksToAdd,
+                amount,
+                expiry_date: formattedExpiryDate,
+                ipaddress,
+                mobileNumber
+            });
+            
             const res = await fetch(`${API_BASE_URL}/users/create-order`, {
                 method: "POST",
                 headers: { 
@@ -146,15 +187,16 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             }
     
             const data = await res.json();
+            console.log("Order creation response:", data);
             
             if (!data || !data.data || !data.data.razorpay_order_id) {
                 console.error("Invalid response structure:", data);
                 throw new Error("Invalid response from server");
             }
     
-            const Razorpay: any = await loadRazorpay();
+            const Razorpay = window.Razorpay;
             if (!Razorpay) {
-                throw new Error("Razorpay SDK failed to load");
+                throw new Error("Razorpay SDK not available");
             }
     
             setShowPaymentModal(true);
@@ -168,6 +210,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 order_id: data.data.razorpay_order_id,
                 handler: async function (response: any) {
                     try {
+                        console.log("Payment response:", response);
                         const verifyRes = await fetch(
                             `${API_BASE_URL}/users/payment_status?razorpay_order_id=${data.data.razorpay_order_id}`,
                             {
@@ -184,6 +227,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                         }
     
                         const verifyData = await verifyRes.json();
+                        console.log("Verification response:", verifyData);
                         
                         if (verifyData?.data === true) {
                             localStorage.setItem(`emailExpiration_${tempEmail}`, expiryDate.toString());
@@ -222,6 +266,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 }
             };
     
+            console.log("Opening Razorpay with options:", options);
             const rzp = new Razorpay(options);
             rzp.open();
     
@@ -231,170 +276,170 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             setShowPaymentModal(false);
         } finally {
             setIsProcessing(false);
-            setWeeks(1);
         }
     };
 
-// ... (keep all the imports and other code the same until the return statement)
-
-return (
-    <>
-        {showCelebration && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center">
-                <ReactConfetti
-                    width={window.innerWidth}
-                    height={window.innerHeight}
-                    recycle={false}
-                    numberOfPieces={500}
-                />
-                <div className="text-4xl font-bold text-white bg-indigo-600 p-8 rounded-lg shadow-xl z-10">
-                    � Congratulations! Payment Successful! 🎉
-                </div>
-            </div>
-        )}
-
-        {showPaymentModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99]">
-                <div className="bg-white p-6 rounded-lg max-w-md">
-                    <h3 className="text-lg font-medium mb-4">Processing Payment...</h3>
-                    <p className="mb-4">Please complete the payment in the Razorpay window.</p>
-                    <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+    return (
+        <>
+            {showCelebration && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center">
+                    <ReactConfetti
+                        width={window.innerWidth}
+                        height={window.innerHeight}
+                        recycle={false}
+                        numberOfPieces={500}
+                    />
+                    <div className="text-4xl font-bold text-white bg-indigo-600 p-8 rounded-lg shadow-xl z-10">
+                        � Congratulations! Payment Successful! 🎉
                     </div>
                 </div>
-            </div>
-        )}
-
-        <Sheet>
-            <SheetTrigger>
-                <button 
-                    className="bg-green-500 text-white px-4 py-2 rounded-xl hover:opacity-90 transition-all"
-                    onClick={handlePurchaseClick}
-                >
-                    Extend Email Subscription
-                </button>
-            </SheetTrigger>
-            {isLoggedIn ? (
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>Extend Your Temporary Email</SheetTitle>
-                        <SheetDescription className="text-sm text-gray-600">
-                            Purchase additional weeks to keep your email active (minimum 1 week)
-                        </SheetDescription>
-                    </SheetHeader>
-                    <div className="space-y-4 mt-6">
-                        <div className="bg-gray-50 p-3 rounded-lg border">
-                            <p className="text-sm text-gray-600 mb-1">Your current email:</p>
-                            <p className="font-medium text-blue-600 break-all">{tempEmail}</p>
+            )}
+    
+            {showPaymentModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99]">
+                    <div className="bg-white p-6 rounded-lg max-w-md">
+                        <h3 className="text-lg font-medium mb-4">Processing Payment...</h3>
+                        <p className="mb-4">Please complete the payment in the Razorpay window.</p>
+                        <div className="flex justify-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
                         </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Number of Weeks to Extend
-                                <span className="ml-2 text-xs text-gray-500">
-                                    (Minimum 1 week)
-                                </span>
-                            </label>
-                            <div className="flex items-center">
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={52}
-                                    value={weeks}
-                                    onChange={(e) => setWeeks(Math.max(1, parseInt(e.target.value) || 1))}
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                                {isMobileView && (
-                                    <div className="ml-2 flex flex-col">
-                                        <button 
-                                            type="button"
-                                            onClick={() => setWeeks(prev => Math.min(52, prev + 1))}
-                                            className="px-3 py-1 bg-gray-200 rounded-t-md"
-                                        >
-                                            +
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setWeeks(prev => Math.max(1, prev - 1))}
-                                            className="px-3 py-1 bg-gray-200 rounded-b-md"
-                                        >
-                                            -
-                                        </button>
-                                    </div>
-                                )}
+                    </div>
+                </div>
+            )}
+    
+            <Sheet>
+                <SheetTrigger>
+                    <button 
+                        className="bg-green-500 text-white px-4 py-2 rounded-xl hover:opacity-90 transition-all"
+                        onClick={handlePurchaseClick}
+                    >
+                        Extend Email Subscription
+                    </button>
+                </SheetTrigger>
+                {isLoggedIn ? (
+                    <SheetContent>
+                        <SheetHeader>
+                            <SheetTitle>Extend Your Temporary Email</SheetTitle>
+                            <SheetDescription className="text-sm text-gray-600">
+                                Purchase additional weeks to keep your email active (minimum 1 week)
+                            </SheetDescription>
+                        </SheetHeader>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            createOrder();
+                        }} className="space-y-4 mt-6">
+                            <div className="bg-gray-50 p-3 rounded-lg border">
+                                <p className="text-sm text-gray-600 mb-1">Your current email:</p>
+                                <p className="font-medium text-blue-600 break-all">{tempEmail}</p>
                             </div>
-                            <p className="mt-1 text-xs text-gray-500">
-                                Each week costs ₹{pricePerWeek}
-                            </p>
-                        </div>
-
-                        {/* Mobile number input for mobile view */}
-                        {isMobileView && (
+    
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Mobile Number
+                                    Number of Weeks to Extend
+                                    <span className="ml-2 text-xs text-gray-500">
+                                        (Minimum 1 week)
+                                    </span>
                                 </label>
-                                <input
-                                    type="tel"
-                                    value={mobileNumber}
-                                    onChange={handleMobileNumberChange}
-                                    placeholder="Enter mobile number"
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
+                                <div className="flex items-center">
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={52}
+                                        value={weeks}
+                                        onChange={(e) => setWeeks(Math.max(1, parseInt(e.target.value) || 1))}
+                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    />
+                                    {isMobileView && (
+                                        <div className="ml-2 flex flex-col">
+                                            <button 
+                                                type="button"
+                                                onClick={() => setWeeks(prev => Math.min(52, prev + 1))}
+                                                className="px-3 py-1 bg-gray-200 rounded-t-md"
+                                            >
+                                                +
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setWeeks(prev => Math.max(1, prev - 1))}
+                                                className="px-3 py-1 bg-gray-200 rounded-b-md"
+                                            >
+                                                -
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Each week costs ₹{pricePerWeek}
+                                </p>
                             </div>
-                        )}
 
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                            <div className="flex justify-between items-center">
-                                <span className="font-medium">Total Amount:</span>
-                                <span className="text-xl font-bold text-blue-600">₹{amount}</span>
-                            </div>
-                            <div className="mt-2 text-sm text-blue-700">
-                                <p>Your email will be valid until:</p>
-                                <p className="font-semibold">{calculateExpiryDate(weeks)}</p>
-                                {!localStorage.getItem(`emailExpiration_${tempEmail}`) && (
-                                    <p className="text-xs mt-1">(Includes {freeTrialDays} days free trial)</p>
-                                )}
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"  // Add this to prevent form submission
-                            onClick={(e) => {
-                                e.preventDefault();  // Prevent default form submission
-                                createOrder();
-                            }}
-                            disabled={!weeks || isProcessing}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-all disabled:opacity-50"
-                        >
-                            {isProcessing ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <Loader className="animate-spin h-4 w-4" />
-                                    Processing...
-                                </span>
-                            ) : (
-                                "Proceed to Secure Payment"
+                            {/* Mobile number input for mobile view */}
+                            {isMobileView && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Mobile Number *
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={mobileNumber}
+                                        onChange={handleMobileNumberChange}
+                                        placeholder="Enter mobile number"
+                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required={isMobileView}
+                                        pattern="[0-9]{10}"
+                                        title="Please enter a valid 10-digit mobile number"
+                                    />
+                                </div>
                             )}
-                        </button>
-                    </div>
-                </SheetContent>
-            ) : (
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>Login Required</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6 text-center">
-                        <p className="text-lg mb-4">Please login to purchase email subscription</p>
-                        <button
-                            onClick={() => navigate("/signup")}
-                            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-medium"
-                        >
-                            Go to Signup Page
-                        </button>
-                    </div>
-                </SheetContent>
-            )}
-        </Sheet>
-    </>
-);
+    
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-medium">Total Amount:</span>
+                                    <span className="text-xl font-bold text-blue-600">₹{amount}</span>
+                                </div>
+                                <div className="mt-2 text-sm text-blue-700">
+                                    <p>Your email will be valid until:</p>
+                                    <p className="font-semibold">{calculateExpiryDate(weeks)}</p>
+                                    {!localStorage.getItem(`emailExpiration_${tempEmail}`) && (
+                                        <p className="text-xs mt-1">(Includes {freeTrialDays} days free trial)</p>
+                                    )}
+                                </div>
+                            </div>
+    
+                            <button
+                                type="submit"
+                                disabled={isProcessing}
+                                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-all disabled:opacity-50"
+                            >
+                                {isProcessing ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Loader className="animate-spin h-4 w-4" />
+                                        Processing...
+                                    </span>
+                                ) : (
+                                    "Proceed to Secure Payment"
+                                )}
+                            </button>
+                        </form>
+                    </SheetContent>
+                ) : (
+                    <SheetContent>
+                        <SheetHeader>
+                            <SheetTitle>Login Required</SheetTitle>
+                        </SheetHeader>
+                        <div className="mt-6 text-center">
+                            <p className="text-lg mb-4">Please login to purchase email subscription</p>
+                            <button
+                                onClick={() => navigate("/signup")}
+                                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-medium"
+                            >
+                                Go to Signup Page
+                            </button>
+                        </div>
+                    </SheetContent>
+                )}
+            </Sheet>
+        </>
+    );
 };
