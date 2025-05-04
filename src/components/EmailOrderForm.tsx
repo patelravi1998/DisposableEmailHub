@@ -152,7 +152,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             setShowPaymentModal(true);
     
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                key: "rzp_live_WpeHJkKPRwn0Pa",
                 amount: amount * 100,
                 currency: "INR",
                 name: "Temporary Email Service",
