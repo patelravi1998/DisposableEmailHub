@@ -4,10 +4,23 @@ import { Navigation } from "../components/Navigation";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { toast } from 'sonner';
 import { Footer } from '../components/Footer';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+
+useEffect(() => {
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    navigate("/", { replace: true }); // Redirect to home if already logged in
+  }
+}, []);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
