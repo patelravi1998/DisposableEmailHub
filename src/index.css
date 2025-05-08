@@ -61,9 +61,10 @@
     flex-direction: column;
   }
 
-  button, a, input, select, textarea {
-    @apply touch-manipulation;
+  .touchable {
+    touch-action: manipulation;
   }
+  
 
   input, textarea {
     @apply appearance-none;
@@ -115,14 +116,14 @@
 }
 
 /* Hide scrollbar */
-::-webkit-scrollbar {
-  display: none;
-}
-
-* {
+.scroll-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+.scroll-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 
 /* Prevent text selection */
 .no-select {
@@ -140,6 +141,12 @@
 
 .animate-blink {
   animation: blink 1s ease-in-out 3;
+}
+
+.modal-scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 100vh;
 }
 
 
