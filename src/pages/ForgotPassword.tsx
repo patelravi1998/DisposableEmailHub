@@ -75,15 +75,22 @@ const ForgotPassword = () => {
               </button>
             </form>
           ) : (
-            <div className="text-center">
-              <p className="mb-4">We've sent a password reset link to your email address.</p>
-              <Link 
-                to="/login" 
-                className="text-blue-600 hover:underline"
-              >
-                Back to Login
-              </Link>
-            </div>
+        <div className="text-center">
+          <p className="mb-4">
+            We've sent a password reset link to your email address.
+            <br />
+            <span className="text-red-600 font-medium text-sm">
+              If you don't see the email in your inbox, please check your spam or junk folder.
+            </span>
+          </p>
+          <Link 
+            to="/login" 
+            className="text-blue-600 hover:underline"
+          >
+            Back to Login
+          </Link>
+        </div>
+
           )}
           
           <div className="mt-6 text-center">

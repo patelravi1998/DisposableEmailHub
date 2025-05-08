@@ -31,9 +31,9 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
   });
   const [userInput, setUserInput] = useState(false)
   const [isPaymentPageLoading, setIsPaymentPageLoading] = useState(false);
-  const pricePerWeek = 7;
+  const pricePerWeek = 10;
   const amount = weeks * pricePerWeek;
-  const freeTrialDays = 7;
+  const freeTrialDays = 3;
   const navigate = useNavigate();
   const razorpayRef = useRef<any>(null);
   const paymentButtonRef = useRef<HTMLButtonElement>(null);
@@ -297,7 +297,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
     }
   
     setIsProcessing(true);
-    
+
     setUserInput(false)
     try {
       if (!razorpayLoaded) {
