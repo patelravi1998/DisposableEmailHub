@@ -92,9 +92,13 @@ const Index = () => {
               </p>
             </div>
           )}
-          {!localStorage.getItem("authToken") && (
+          {!localStorage.getItem("authToken") ? (
   <p style={{ color: 'red', fontWeight: 'bold', marginBottom: '10px' }}>
-    🔴 Note: If you generate a new email while logged out, it won’t be saved. To keep it and manage subscriptions, please log in. Once logged in, you’ll see that email and can take a subscription from there.
+    🔴 Note: If you generate a new email while logged out, it won’t be saved. To keep it and manage subscriptions, please log in. Once logged in, you’ll see that email  select it and can take a subscription from there.
+  </p>
+) : (
+  <p style={{ color: 'red', fontWeight: 'bold', marginBottom: '10px' }}>
+    🔴 Note: If you want to generate a new email, logout first, generate the email, then log in. You’ll see it in the dropdown — select it to view incoming mails and take a subscription.
   </p>
 )}
 
