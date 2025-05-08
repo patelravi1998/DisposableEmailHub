@@ -29,6 +29,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [userInput, setUserInput] = useState(false)
   const [isPaymentPageLoading, setIsPaymentPageLoading] = useState(false);
   const pricePerWeek = 7;
   const amount = weeks * pricePerWeek;
@@ -122,6 +123,8 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
       navigate("/signup");
       return;
     }
+
+    setUserInput(true)
   };
 
   const handleMobileNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,6 +297,8 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
     }
   
     setIsProcessing(true);
+    
+    setUserInput(false)
     try {
       if (!razorpayLoaded) {
         await loadRazorpay();
@@ -435,7 +440,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             Extend Email Subscription
           </button>
         </SheetTrigger>
-        {isLoggedIn ? (
+        {isLoggedIn && userInput ? (
           <SheetContent className="overflow-y-auto max-h-screen">
             <SheetHeader>
               <SheetTitle>Extend Your Temporary Email</SheetTitle>
@@ -545,20 +550,21 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             </form>
           </SheetContent>
         ) : (
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Login Required</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6 text-center">
-              <p className="text-lg mb-4">Please login to purchase email subscription</p>
-              <button
-                onClick={() => navigate("/signup")}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-medium"
-              >
-                Go to Signup Page
-              </button>
-            </div>
-          </SheetContent>
+          // <SheetContent>
+          // <SheetHeader>
+          //     <SheetTitle>Login Required</SheetTitle>
+          //   </SheetHeader>
+          //   <div className="mt-6 text-center">
+          //     <p className="text-lg mb-4">Please login to purchase email subscription</p>
+          //     <button
+          //       onClick={() => navigate("/signup")}
+          //       className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-medium"
+          //     >
+          //       Go to Signup Page
+          //     </button>
+          //   </div>
+          // </SheetContent>
+          <></>
         )}
       </Sheet>
     </>
