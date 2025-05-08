@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Loader } from "lucide-react";
@@ -7,6 +7,7 @@ import { decryptData } from "./encryption";
 import { useNavigate } from "react-router-dom";
 import ReactConfetti from 'react-confetti';
 import { downloadInvoice } from "./InvoiceTemplate";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 declare global {
@@ -24,27 +25,40 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
     const [mobileNumber, setMobileNumber] = useState("");
     const [isMobileView, setIsMobileView] = useState(false);
     const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+    const [windowSize, setWindowSize] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight,
+    });
     const pricePerWeek = 7;
     const amount = weeks * pricePerWeek;
     const freeTrialDays = 7;
     const navigate = useNavigate();
+    const razorpayRef = useRef<any>(null);
 
     useEffect(() => {
-        // Check if user is logged in when component mounts
         const authToken = localStorage.getItem("authToken");
         setIsLoggedIn(!!authToken);
         
-        // Check if mobile view
         const checkIfMobile = () => {
-            setIsMobileView(window.innerWidth <= 768);
+            const isMobile = window.innerWidth <= 768;
+            setIsMobileView(isMobile);
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
         };
+        
         checkIfMobile();
         window.addEventListener('resize', checkIfMobile);
         
-        // Preload Razorpay script
         loadRazorpay().then(() => setRazorpayLoaded(true));
         
-        return () => window.removeEventListener('resize', checkIfMobile);
+        return () => {
+            window.removeEventListener('resize', checkIfMobile);
+            if (razorpayRef.current) {
+                razorpayRef.current.close();
+            }
+        };
     }, []);
 
     const loadRazorpay = () => {
@@ -53,16 +67,34 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 resolve(window.Razorpay);
                 return;
             }
+            
+            if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+                const checkLoaded = () => {
+                    if (window.Razorpay) {
+                        resolve(window.Razorpay);
+                    } else {
+                        setTimeout(checkLoaded, 100);
+                    }
+                };
+                checkLoaded();
+                return;
+            }
+            
             const script = document.createElement("script");
             script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.async = true;
+            script.defer = true;
+            
             script.onload = () => {
                 console.log("Razorpay script loaded successfully");
                 resolve(window.Razorpay);
             };
+            
             script.onerror = () => {
                 toast.error("Failed to load Razorpay SDK");
                 console.error("Failed to load Razorpay script");
             };
+            
             document.body.appendChild(script);
         });
     };
@@ -156,15 +188,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 }
             }
     
-            console.log("Creating order with:", {
-                email: tempEmail,
-                days: weeksToAdd,
-                amount,
-                expiry_date: formattedExpiryDate,
-                ipaddress,
-                mobileNumber
-            });
-            
             const res = await fetch(`${API_BASE_URL}/users/create-order`, {
                 method: "POST",
                 headers: { 
@@ -176,8 +199,8 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                     days: weeksToAdd,
                     amount,
                     expiry_date: formattedExpiryDate,
-                    ipaddress: ipaddress,
-                    // mobileNumber: mobileNumber // Send mobile number to your backend
+                    ipaddress: ipaddress
+                    // mobileNumber: mobileNumber
                 }),
             });
     
@@ -187,10 +210,8 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             }
     
             const data = await res.json();
-            console.log("Order creation response:", data);
             
             if (!data || !data.data || !data.data.razorpay_order_id) {
-                console.error("Invalid response structure:", data);
                 throw new Error("Invalid response from server");
             }
     
@@ -208,17 +229,15 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                 name: "Temporary Email Service",
                 description: `Email extension for ${weeks} week(s)`,
                 order_id: data.data.razorpay_order_id,
-                // Add these configurations to skip Razorpay's contact collection
                 prefill: {
-                    contact: mobileNumber, // Prefill with the number you collected
-                    email: tempEmail      // Prefill with the email
+                    contact: mobileNumber,
+                    email: tempEmail
                 },
                 notes: {
-                    mobileNumber: mobileNumber // Pass the mobile number as note
+                    mobileNumber: mobileNumber
                 },
                 handler: async function (response: any) {
                     try {
-                        console.log("Payment response:", response);
                         const verifyRes = await fetch(
                             `${API_BASE_URL}/users/payment_status?razorpay_order_id=${data.data.razorpay_order_id}`,
                             {
@@ -235,7 +254,6 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                         }
     
                         const verifyData = await verifyRes.json();
-                        console.log("Verification response:", verifyData);
                         
                         if (verifyData?.data === true) {
                             localStorage.setItem(`emailExpiration_${tempEmail}`, expiryDate.toString());
@@ -270,21 +288,56 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                     ondismiss: () => {
                         setShowPaymentModal(false);
                         toast.info("Payment window closed");
-                    }
+                    },
+                    escape: false,
+                    backdropclose: false,
                 },
-                // Disable Razorpay's contact collection
                 config: {
                     display: {
-                        hide: [{
-                            method: 'contact'
-                        }]
+                        hide: [{ method: 'contact' }],
+                        preferences: {
+                            show_default_blocks: true,
+                        }
                     }
+                },
+                "external": {
+                    "wallets": ["phonepe", "paytm", "gpay", "bhim"]
+                },
+                "method": {
+                    "netbanking": true,
+                    "card": true,
+                    "upi": true,
+                    "wallet": true,
+                    "paylater": true
+                },
+                "timeout": 300,
+                "retry": {
+                    "enabled": true,
+                    "max_count": 4
                 }
             };
     
-            console.log("Opening Razorpay with options:", options);
-            const rzp = new Razorpay(options);
-            rzp.open();
+            if (razorpayRef.current) {
+                razorpayRef.current.close();
+            }
+            
+            razorpayRef.current = new Razorpay(options);
+            
+            if (isMobileView) {
+                razorpayRef.current.on('payment.failed', function(response: any) {
+                    console.error("Payment failed:", response);
+                    toast.error("Payment failed. Please try again.");
+                    setShowPaymentModal(false);
+                });
+                
+                razorpayRef.current.on('payment.error', function(error: any) {
+                    console.error("Payment error:", error);
+                    toast.error("Payment error occurred. Please try again.");
+                    setShowPaymentModal(false);
+                });
+            }
+            
+            razorpayRef.current.open();
     
         } catch (err) {
             console.error("Error in createOrder:", err);
@@ -300,25 +353,36 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             {showCelebration && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center">
                     <ReactConfetti
-                        width={window.innerWidth}
-                        height={window.innerHeight}
+                        width={windowSize.width}
+                        height={windowSize.height}
                         recycle={false}
                         numberOfPieces={500}
                     />
                     <div className="text-4xl font-bold text-white bg-indigo-600 p-8 rounded-lg shadow-xl z-10">
-                        � Congratulations! Payment Successful! 🎉
+                        🎉 Congratulations! Payment Successful! 🎉
                     </div>
                 </div>
             )}
     
             {showPaymentModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99]">
-                    <div className="bg-white p-6 rounded-lg max-w-md">
+                    <div className="bg-white p-6 rounded-lg max-w-md w-[90%]">
                         <h3 className="text-lg font-medium mb-4">Processing Payment...</h3>
                         <p className="mb-4">Please complete the payment in the Razorpay window.</p>
                         <div className="flex justify-center">
                             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
                         </div>
+                        <button
+                            onClick={() => {
+                                if (razorpayRef.current) {
+                                    razorpayRef.current.close();
+                                }
+                                setShowPaymentModal(false);
+                            }}
+                            className="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg font-medium"
+                        >
+                            Cancel Payment
+                        </button>
                     </div>
                 </div>
             )}
@@ -333,7 +397,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                     </button>
                 </SheetTrigger>
                 {isLoggedIn ? (
-                    <SheetContent>
+                    <SheetContent className="overflow-y-auto max-h-screen">
                         <SheetHeader>
                             <SheetTitle>Extend Your Temporary Email</SheetTitle>
                             <SheetDescription className="text-sm text-gray-600">
@@ -390,27 +454,29 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
                                 </p>
                             </div>
 
-                            {/* Mobile number input for mobile view */}
-                            {isMobileView && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Mobile Number *
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        value={mobileNumber}
-                                        onChange={handleMobileNumberChange}
-                                        placeholder="Enter mobile number"
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        required={isMobileView}
-                                        pattern="[0-9]{10}"
-                                        title="Please enter a valid 10-digit mobile number"
-                                    />
-                                </div>
-                            )}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Mobile Number {isMobileView && '*'}
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={mobileNumber}
+                                    onChange={handleMobileNumberChange}
+                                    placeholder="Enter mobile number"
+                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    required={isMobileView}
+                                    pattern="[0-9]{10}"
+                                    title="Please enter a valid 10-digit mobile number"
+                                />
+                                {!isMobileView && (
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        Required for UPI payments on mobile
+                                    </p>
+                                )}
+                            </div>
     
                             <div className="bg-blue-50 p-4 rounded-lg">
-                                <div className="flex justify-between Aitems-center">
+                                <div className="flex justify-between items-center">
                                     <span className="font-medium">Total Amount:</span>
                                     <span className="text-xl font-bold text-blue-600">₹{amount}</span>
                                 </div>
