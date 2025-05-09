@@ -140,7 +140,7 @@ export const generateInvoice = (
           <tr>
             <td>Temporary Email Extension</td>
             <td>${weeks} week(s)</td>
-            <td>₹7</td>
+            <td>₹10</td>
             <td>₹${amount}</td>
           </tr>
           <tr class="total-row">
