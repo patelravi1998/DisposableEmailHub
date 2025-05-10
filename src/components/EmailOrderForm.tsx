@@ -33,7 +33,7 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
   const [isPaymentPageLoading, setIsPaymentPageLoading] = useState(false);
   const pricePerWeek = 10;
   const amount = weeks * pricePerWeek;
-  const freeTrialDays = 3;
+  const freeTrialDays = 7;
   const navigate = useNavigate();
   const razorpayRef = useRef<any>(null);
   const paymentButtonRef = useRef<HTMLButtonElement>(null);

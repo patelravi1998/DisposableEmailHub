@@ -30,7 +30,7 @@ const decryptData = (ciphertext: string) => {
   }
 };
  
-const setCookie = (name: string, value: string, days = 3) => {
+const setCookie = (name: string, value: string, days = 7) => {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   document.cookie = `${name}=${value}; path=/; expires=${expires}; Secure`;
 };
@@ -47,7 +47,7 @@ const removeCookie = (name: string) => {
 };
  
 // Add helper function to set expiration date in localStorage
-const setEmailExpiration = (email: string, days = 3) => {
+const setEmailExpiration = (email: string, days = 7) => {
   const expirationDate = new Date();
   expirationDate.setDate(expirationDate.getDate() + days);
   localStorage.setItem(`emailExpiration_${email}`, expirationDate.toString());
