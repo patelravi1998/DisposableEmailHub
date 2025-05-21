@@ -117,7 +117,30 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
     return moment(expiryDate).format("MMMM Do, YYYY");
   };
 
-  const handlePurchaseClick = () => {
+  const handlePurchaseClick = async() => {
+    try {
+      console.log(`>>>>>aaaa`)
+      const getCookie = (name: string) => {
+        return (
+          document.cookie
+            .split("; ")
+            .find((row) => row.startsWith(name + "="))
+            ?.split("=")[1] || null
+        );
+      };
+      const encryptedEmail = getCookie('temporaryEmail');
+
+      const response = await fetch(`${API_BASE_URL}/users/click`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_mail: decryptData(encryptedEmail) }),
+      });
+      console.log(`>>>>response1131${JSON.stringify(response)}`)
+  
+      // Optionally show a success message
+    } catch (error) {
+      console.error("Error posting user click:", error);
+    }
     if (!isLoggedIn) {
       toast.error("Please login first to purchase subscription");
       navigate("/signup");
