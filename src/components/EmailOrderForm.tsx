@@ -440,6 +440,16 @@ export const EmailOrderForm = ({ tempEmail }: { tempEmail: string }) => {
             Extend Email Subscription
           </button>
         </SheetTrigger>
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-gray-800">
+  <h3 className="text-lg font-semibold text-blue-700 mb-2">Why Go Premium?</h3>
+  <ul className="list-disc ml-6 space-y-1">
+    <li><strong>Keep Your Email Alive:</strong> Don’t lose it after 7 days!</li>
+    <li><strong>Unlimited Access:</strong> Continue using the same inbox without reset.</li>
+    <li><strong>Full Inbox Access:</strong> See all mails, anytime.</li>
+    <li><strong>Just ₹10/week:</strong> One of the lowest prices on the internet!</li>
+  </ul>
+</div>
+
         {isLoggedIn && userInput ? (
           <SheetContent className="overflow-y-auto max-h-screen">
             <SheetHeader>
