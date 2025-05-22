@@ -6,11 +6,21 @@ import { Facebook, Instagram, Linkedin, Twitter, Mail, MapPin, Phone } from "luc
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import { useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+
 
 export const Footer = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showLanguages, setShowLanguages] = useState(false);
+
+  const handleContactClick = () => {
+    navigate('/contact');
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   // Complete country to language mapping
 // Updated country to language mapping with unique keys
@@ -223,6 +233,16 @@ const countryToLanguage = {
                   </a>
                 </li>
               ))}
+              <li className="transform hover:translate-x-2 transition-transform">
+                <Button
+                  onClick={handleContactClick}
+                  variant="link"
+                  className="text-gray-600 hover:text-primary transition-colors text-lg flex items-center gap-2 p-0 h-auto"
+                >
+                  <span className="w-2 h-2 rounded-full bg-primary/20" />
+                  {t("Contact Us")}
+                </Button>
+              </li>
             </ul>
           </div>
 

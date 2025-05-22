@@ -12,6 +12,7 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    mobile: '',
     message: ''
   });
   
@@ -56,13 +57,18 @@ const Contact = () => {
     setSubmitStatus({ success: false, message: '' });
 
     try {
-      // Basic client-side validation
-      if (!formData.name || !formData.email || !formData.message) {
+      // Client-side validation
+      if (!formData.name || !formData.email || !formData.mobile || !formData.message) {
         throw new Error(t("Please fill in all fields"));
       }
 
       if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
         throw new Error(t("Please enter a valid email address"));
+      }
+
+      // Mobile number validation (basic - at least 10 digits)
+      if (!/^[0-9]{10,15}$/.test(formData.mobile)) {
+        throw new Error(t("Please enter a valid mobile number (10-15 digits)"));
       }
 
       const response = await fetch(`${API_BASE_URL}/users/user_info`, {
@@ -73,6 +79,7 @@ const Contact = () => {
         body: JSON.stringify({
           email: formData.email,
           name: formData.name,
+          mobile: formData.mobile, // Added mobile to the request
           message: formData.message
         })
       });
@@ -86,7 +93,7 @@ const Contact = () => {
         success: true,
         message: t("Your message has been sent successfully!")
       });
-      setFormData({ name: '', email: '', message: '' }); // Reset form
+      setFormData({ name: '', email: '', mobile: '', message: '' }); // Reset form
     } catch (error) {
       setSubmitStatus({
         success: false,
@@ -124,7 +131,7 @@ const Contact = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t("Name")}
+                    {t("Name")} *
                   </label>
                   <input
                     type="text"
@@ -138,7 +145,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t("Email")}
+                    {t("Email")} *
                   </label>
                   <input
                     type="email"
@@ -151,18 +158,36 @@ const Contact = () => {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t("Message")}
-                </label>
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors h-32"
-                  placeholder={t("Your message")}
-                  required
-                />
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t("Mobile Number")} *
+                  </label>
+                  <input
+                    type="tel"
+                    name="mobile"
+                    value={formData.mobile}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                    placeholder={t("Your mobile number")}
+                    pattern="[0-9]{10,15}"
+                    title={t("Please enter 10-15 digit mobile number")}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t("Message")} *
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors h-32"
+                    placeholder={t("Your message")}
+                    required
+                  />
+                </div>
               </div>
               <Button 
                 type="submit" 
