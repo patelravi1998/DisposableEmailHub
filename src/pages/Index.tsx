@@ -9,6 +9,8 @@ import { Toaster } from 'sonner';
 import { Shield, Lock, Mail, Clock } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import {LanguageSelector} from '../components/LanguageSelector'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const Index = () => {
   const { t } = useTranslation();
   const [currentEmail, setCurrentEmail] = useState('');
@@ -54,13 +56,46 @@ const Index = () => {
 
   // Update expiration date when currentEmail changes
   useEffect(() => {
-    if (currentEmail) {
-      const expDate = getExpirationDate(currentEmail);
-      setExpirationDate(expDate ? formatExpirationDate(expDate) : null);
-    } else {
-      setExpirationDate(null);
-    }
+    const fetchExpirationDate = async () => {
+      if (!currentEmail) {
+        setExpirationDate(null);
+        return;
+      }
+  
+      const expirationKey = `emailExpiration_${currentEmail}`;
+      const localExpiration = localStorage.getItem(expirationKey);
+      console.log(`>>>localExpirationhaiaklpooi`,localExpiration)
+  
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/get_expiration_date?temporaryEmail=${currentEmail}`);
+        const data = await response.json();
+        console.log(`>>>memememtata${JSON.stringify(data)}`);
+      
+        const apiExpiration = data.data; // ✅ FIXED HERE
+      
+        if (!apiExpiration) return;
+      
+        const apiDateObj = new Date(apiExpiration + "T23:59:59");
+        const apiDateStr = apiDateObj.toISOString();
+      
+        if (!localExpiration || new Date(localExpiration).toISOString().slice(0, 10) !== apiExpiration) {
+          localStorage.setItem(expirationKey, apiDateStr);
+          setExpirationDate(formatExpirationDate(apiDateObj));
+        } else {
+          setExpirationDate(formatExpirationDate(new Date(localExpiration)));
+        }
+      } catch (err) {
+        console.error("Failed to fetch expiration date:", err);
+        if (localExpiration) {
+          setExpirationDate(formatExpirationDate(new Date(localExpiration)));
+        }
+      }
+      
+    };
+  
+    fetchExpirationDate();
   }, [currentEmail]);
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-accent/20">

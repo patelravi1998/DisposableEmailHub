@@ -11,6 +11,7 @@ import { EmailOrderForm } from './EmailOrderForm';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import Cookies from "js-cookie";
 import { EmailList } from './inbox/EmailList';
+import { ReferFriendModal } from './ReferFriendModal';
 
  
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -370,7 +371,8 @@ export const EmailGenerator = ({ onEmailGenerated, currentEmail }: EmailGenerato
       )} */}
         <EmailOrderForm tempEmail={currentEmail} />
         <EmailSettings onExpirationChange={() => {}} />
-      </div>
+        <ReferFriendModal currentEmail={currentEmail} />
+        </div>
     </div>
   );
 };
