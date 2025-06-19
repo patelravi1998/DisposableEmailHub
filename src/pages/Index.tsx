@@ -53,15 +53,24 @@ const Index = () => {
 
   const playExpiryNotification = () => {
     if (Notification.permission === 'granted') {
-      new Notification("Your email will expire tomorrow!", {
-        body: "Click 'Extend Email Subscription' to avoid losing access.",
+      const notification = new Notification("🔔 TempEmailBox.com Notice", {
+        body: "We've sent you a reminder to extend your email subscription. Only ₹10/week ($0.12) to keep access. Click to renew now!",
         icon: '/logo192.png',
       });
-
-      const audio = new Audio('/dream11-tone.mp3');
-      audio.play();
+  
+      notification.onclick = () => {
+        // Open your site
+        window.open(window.location.origin, '_blank');
+  
+        // Play the tone
+        const audio = new Audio('/dream11-tone.mp3');
+        audio.play().catch((e) => {
+          console.error("Audio play failed:", e);
+        });
+      };
     }
   };
+  
 
   const isTomorrow = (dateStr: string): boolean => {
     const today = new Date();
