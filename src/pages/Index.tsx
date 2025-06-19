@@ -8,41 +8,38 @@ import { Footer } from '../components/Footer';
 import { Toaster } from 'sonner';
 import { Shield, Lock, Mail, Clock } from 'lucide-react';
 import { useTranslation } from "react-i18next";
-import {LanguageSelector} from '../components/LanguageSelector'
+import { LanguageSelector } from '../components/LanguageSelector';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Index = () => {
   const { t } = useTranslation();
-  const [currentEmail, setCurrentEmail] = useState('');
-  console.log(`>>>>>currentEmailinbox`,currentEmail)
+  const [currentEmail, setCurrentEmail] = useState<string | null>(null);
   const [expirationDate, setExpirationDate] = useState<string | null>(null);
-  const features = [{
-    icon: Shield,
-    title: t("Anonymous Protection"),
-    description: t("Generate burner emails for ultimate online privacy")
-  }, {
-    icon: Lock,
-    title: t("Secure & Private"),
-    description: t("Create disposable temporary email addresses with no registration")
-  }, {
-    icon: Mail,
-    title: t("Social Media Ready"),
-    description: t("Perfect temporary mail for Facebook verification and sign-ups")
-  }, {
-    icon: Clock,
-    title: t("Auto-Expiring"),
-    description: t("Your throwaway mail automatically deletes after use")
-  }];
 
-  // Function to get expiration date from localStorage
-  const getExpirationDate = (email: string) => {
-    if (!email) return null;
-    const expirationKey = `emailExpiration_${email}`;
-    const expirationDateStr = localStorage.getItem(expirationKey);
-    return expirationDateStr ? new Date(expirationDateStr) : null;
-  };
+  const features = [
+    {
+      icon: Shield,
+      title: t("Anonymous Protection"),
+      description: t("Generate burner emails for ultimate online privacy")
+    },
+    {
+      icon: Lock,
+      title: t("Secure & Private"),
+      description: t("Create disposable temporary email addresses with no registration")
+    },
+    {
+      icon: Mail,
+      title: t("Social Media Ready"),
+      description: t("Perfect temporary mail for Facebook verification and sign-ups")
+    },
+    {
+      icon: Clock,
+      title: t("Auto-Expiring"),
+      description: t("Your throwaway mail automatically deletes after use")
+    }
+  ];
 
-  // Format date to show in the message
   const formatExpirationDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -50,102 +47,120 @@ const Index = () => {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
-  // Update expiration date when currentEmail changes
+  const playExpiryNotification = () => {
+    if (Notification.permission === 'granted') {
+      new Notification("Your email will expire tomorrow!", {
+        body: "Click 'Extend Email Subscription' to avoid losing access.",
+        icon: '/logo192.png',
+      });
+
+      const audio = new Audio('/dream11-tone.mp3');
+      audio.play();
+    }
+  };
+
+  const isTomorrow = (dateStr: string): boolean => {
+    const today = new Date();
+    const date = new Date(dateStr + "T00:00:00");
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    return date.toDateString() === tomorrow.toDateString();
+  };
+
   useEffect(() => {
     const fetchExpirationDate = async () => {
       if (!currentEmail) {
         setExpirationDate(null);
         return;
       }
-  
+
       const expirationKey = `emailExpiration_${currentEmail}`;
       const localExpiration = localStorage.getItem(expirationKey);
-      console.log(`>>>localExpirationhaiaklpooi`,localExpiration)
-  
+
       try {
         const response = await fetch(`${API_BASE_URL}/users/get_expiration_date?temporaryEmail=${currentEmail}`);
         const data = await response.json();
-        console.log(`>>>memememtata${JSON.stringify(data)}`);
-      
-        const apiExpiration = data.data; // ✅ FIXED HERE
-      
+        const apiExpiration = data.data;
         if (!apiExpiration) return;
-      
-        const apiDateObj = new Date(apiExpiration + "T23:59:59");
+
+        const apiDateObj = new Date(`${apiExpiration}T23:59:59`);
         const apiDateStr = apiDateObj.toISOString();
-      
-        if (!localExpiration || new Date(localExpiration).toISOString().slice(0, 10) !== apiExpiration) {
+
+        const shouldUpdate = !localExpiration || new Date(localExpiration).toISOString().slice(0, 10) !== apiExpiration;
+
+        if (shouldUpdate) {
           localStorage.setItem(expirationKey, apiDateStr);
           setExpirationDate(formatExpirationDate(apiDateObj));
         } else {
           setExpirationDate(formatExpirationDate(new Date(localExpiration)));
         }
+
+        if (isTomorrow(apiExpiration)) {
+          Notification.requestPermission().then((perm) => {
+            if (perm === 'granted') {
+              playExpiryNotification();
+            }
+          });
+        }
+
       } catch (err) {
         console.error("Failed to fetch expiration date:", err);
         if (localExpiration) {
           setExpirationDate(formatExpirationDate(new Date(localExpiration)));
         }
       }
-      
     };
-  
+
     fetchExpirationDate();
   }, [currentEmail]);
-  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-accent/20">
       <Toaster position="top-center" />
       <Navigation />
-  
-      {/* Hero Section */}
+
       <header className="container mx-auto px-4 pt-32 pb-20">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          {/* Language Selector */}
           <div className="mb-6 flex justify-center">
             <LanguageSelector />
           </div>
-  
+
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             {t("Best Disposable Email Service")}
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-8">
-            {t(
-              "Create instant throwaway mail addresses for Facebook, online registrations, and more. Our disposable email IDs keep your real inbox clean and secure."
-            )}
+            {t("Create instant throwaway mail addresses for Facebook, online registrations, and more. Our disposable email IDs keep your real inbox clean and secure.")}
           </p>
-          
-          {/* Updated notice message with dynamic expiration date */}
+
           {expirationDate && (
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8">
               <p className="font-bold text-blue-600">
-                Your email will expire on: {expirationDate}
+                {t("Your email will expire on")}: {expirationDate}
               </p>
             </div>
           )}
-          {!localStorage.getItem("authToken") ? (
-  <p style={{ color: 'red', fontWeight: 'bold', marginBottom: '10px' }}>
-    🔴 Note: If you generate a new email while logged out, it won’t be saved. To keep it and manage subscriptions, please log in. Once logged in, you’ll see that email  select it and can take a subscription from there.
-  </p>
-) : (
-  <p style={{ color: 'red', fontWeight: 'bold', marginBottom: '10px' }}>
-    🔴 Note: If you want to generate a new email, logout first, generate the email, then log in. You’ll see it in the dropdown — select it to view incoming mails and take a subscription.
-  </p>
-)}
 
+          {!localStorage.getItem("authToken") ? (
+            <p className="text-red-600 font-bold mb-4">
+              🔴 {t("Note")}: {t("If you generate a new email while logged out, it won’t be saved. To keep it and manage subscriptions, please log in. Once logged in, you’ll see that email — select it and can take a subscription from there.")}
+            </p>
+          ) : (
+            <p className="text-red-600 font-bold mb-4">
+              🔴 {t("Note")}: {t("If you want to generate a new email, logout first, generate the email, then log in. You’ll see it in the dropdown — select it to view incoming mails and take a subscription.")}
+            </p>
+          )}
         </div>
-  
+
         <main className="max-w-3xl mx-auto">
           <EmailGenerator onEmailGenerated={setCurrentEmail} currentEmail={currentEmail} />
           <Inbox currentEmail={currentEmail} />
         </main>
       </header>
-  
-      {/* Features Section */}
+
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
@@ -162,8 +177,7 @@ const Index = () => {
           </div>
         </div>
       </section>
-  
-      {/* Benefits Section */}
+
       <section className="py-16 bg-accent/5">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
@@ -191,7 +205,7 @@ const Index = () => {
           </div>
         </div>
       </section>
-  
+
       <AboutSection />
       <Testimonials />
       <Footer />
