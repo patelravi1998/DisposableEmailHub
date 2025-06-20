@@ -16,6 +16,7 @@ const Index = () => {
   const { t } = useTranslation();
   const [currentEmail, setCurrentEmail] = useState<string | null>(null);
   const [expirationDate, setExpirationDate] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   const features = [
     {
@@ -40,6 +41,9 @@ const Index = () => {
     }
   ];
 
+  const notificationAudio = new Audio('/dream11-tone.mp3');
+  notificationAudio.load();
+
   const formatExpirationDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -57,20 +61,20 @@ const Index = () => {
         body: "We've sent you a reminder to extend your email subscription. Only ₹10/week ($0.12) to keep access. Click to renew now!",
         icon: '/logo192.png',
       });
-  
+
       notification.onclick = () => {
-        // Open your site
         window.open(window.location.origin, '_blank');
-  
-        // Play the tone
-        const audio = new Audio('/dream11-tone.mp3');
-        audio.play().catch((e) => {
-          console.error("Audio play failed:", e);
-        });
       };
+
+      setTimeout(() => {
+        if (document.visibilityState === "visible" && soundEnabled) {
+          notificationAudio.play().catch((e) => {
+            console.warn("Mobile auto-play prevented sound:", e);
+          });
+        }
+      }, 300);
     }
   };
-  
 
   const isTomorrow = (dateStr: string): boolean => {
     const today = new Date();
@@ -79,6 +83,13 @@ const Index = () => {
     tomorrow.setDate(today.getDate() + 1);
     return date.toDateString() === tomorrow.toDateString();
   };
+
+  useEffect(() => {
+    // Request notification permission early
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => {
     const fetchExpirationDate = async () => {
@@ -109,11 +120,9 @@ const Index = () => {
         }
 
         if (isTomorrow(apiExpiration)) {
-          Notification.requestPermission().then((perm) => {
-            if (perm === 'granted') {
-              playExpiryNotification();
-            }
-          });
+          if (Notification.permission === 'granted') {
+            playExpiryNotification();
+          }
         }
 
       } catch (err) {
@@ -125,7 +134,7 @@ const Index = () => {
     };
 
     fetchExpirationDate();
-  }, [currentEmail]);
+  }, [currentEmail, soundEnabled]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-accent/20">
@@ -161,6 +170,22 @@ const Index = () => {
             <p className="text-red-600 font-bold mb-4">
               🔴 {t("Note")}: {t("If you want to generate a new email, logout first, generate the email, then log in. You’ll see it in the dropdown — select it to view incoming mails and take a subscription.")}
             </p>
+          )}
+
+          {/* Show button to enable sound on mobile */}
+          {typeof window !== "undefined" && /Mobi|Android/i.test(navigator.userAgent) && !soundEnabled && (
+            <button
+              onClick={() => {
+                notificationAudio.play().then(() => {
+                  setSoundEnabled(true);
+                }).catch(() => {
+                  setSoundEnabled(true);
+                });
+              }}
+              className="mt-4 text-sm text-blue-600 underline"
+            >
+              {t("Tap to Enable Sound Notifications")}
+            </button>
           )}
         </div>
 
