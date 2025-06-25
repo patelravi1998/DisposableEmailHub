@@ -140,6 +140,9 @@ const LeadStatusPage = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">Leads</h2>
+        </div>
           <div className="relative w-64">
             <input 
               value={globalFilter || ''}
