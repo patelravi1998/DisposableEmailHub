@@ -5,6 +5,29 @@ import Modal from '../components/Modal';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const exportToCsv = (filename: string, headers: string[], rows: any[][]) => {
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => 
+      row.map(field => 
+        `"${field.toString().replace(/"/g, '""')}"`
+      ).join(',')
+    )
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 export const LeadStatusPage = () => {
   const [data, setData] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -75,6 +98,17 @@ export const LeadStatusPage = () => {
     }
   };
 
+  const handleExport = () => {
+    const headers = columns.map(col => col.Header as string);
+    const rows = data.map(item => 
+      columns.map(col => {
+        return item[col.accessor] || '';
+      })
+    );
+    
+    exportToCsv('lead_status_export.csv', headers, rows);
+  };
+
   const columns = useMemo(() => [
     { Header: 'Mobile', accessor: 'mobile' },
     { 
@@ -143,51 +177,58 @@ export const LeadStatusPage = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div className="w-full md:w-auto text-center md:text-left">
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Leads</h2>
-          </div>
-          <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-            <div className="relative w-full md:w-64">
+    <div className="p-2 sm:p-4 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-md p-2 sm:p-4">
+        <div className="flex flex-col gap-3 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 text-center sm:text-left">Lead Status</h2>
+          
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch">
+            <div className="relative flex-grow">
               <input 
                 value={globalFilter || ''}
                 onChange={e => setGlobalFilter(e.target.value)} 
                 placeholder="Search leads..." 
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-8 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
-              <svg 
-                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
+              <svg className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <button 
-              onClick={() => { 
-                setFormData({
-                  mobile: '', 
-                  called_date: new Date().toISOString().split('T')[0],
-                  id: null
-                }); 
-                setShowModal(true); 
-              }} 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center transition-colors shadow-md"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span className="whitespace-nowrap">Add Lead</span>
-            </button>
+            
+            <div className="flex gap-2">
+              <button 
+                onClick={handleExport}
+                className="flex-grow sm:flex-grow-0 bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm rounded-lg flex items-center justify-center"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="hidden sm:inline">Export</span>
+              </button>
+              
+              <button 
+                onClick={() => { 
+                  setFormData({
+                    mobile: '', 
+                    called_date: new Date().toISOString().split('T')[0],
+                    id: null
+                  }); 
+                  setShowModal(true); 
+                }} 
+                className="flex-grow sm:flex-grow-0 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm rounded-lg flex items-center justify-center"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span className="hidden sm:inline">Add Status</span>
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full align-middle">
-            <div className="overflow-hidden">
+            <div className="overflow-hidden border border-gray-200 rounded-lg">
               <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   {headerGroups.map(group => (
