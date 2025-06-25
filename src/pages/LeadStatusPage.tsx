@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const LeadStatusPage = () => {
+export const LeadStatusPage = () => {
   const [data, setData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,7 +84,13 @@ const LeadStatusPage = () => {
         <span>{new Date(value).toLocaleDateString()}</span>
       )
     },
-    { Header: 'Created At', accessor: 'created_at' },
+    { 
+      Header: 'Created At', 
+      accessor: 'created_at',
+      Cell: ({ value }: { value: string }) => (
+        <span>{new Date(value).toLocaleString()}</span>
+      )
+    },
     {
       Header: 'Actions',
       accessor: 'actions',
@@ -97,7 +103,7 @@ const LeadStatusPage = () => {
             });
             setShowModal(true);
           }} 
-          className="text-blue-600 hover:text-blue-800 font-medium"
+          className="text-blue-600 hover:text-blue-800 font-medium px-3 py-1 rounded-md bg-blue-50 hover:bg-blue-100 transition-colors"
         >
           Edit
         </button>
@@ -137,100 +143,123 @@ const LeadStatusPage = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-6">
-        <div className="flex justify-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800">Leads</h2>
-        </div>
-          <div className="relative w-64">
-            <input 
-              value={globalFilter || ''}
-              onChange={e => setGlobalFilter(e.target.value)} 
-              placeholder="Search leads..." 
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <svg 
-              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="w-full md:w-auto text-center md:text-left">
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Leads</h2>
           </div>
-          <button 
-            onClick={() => { 
-              setFormData({
-                mobile: '', 
-                called_date: new Date().toISOString().split('T')[0],
-                id: null
-              }); 
-              setShowModal(true); 
-            }} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center transition-colors"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Add Lead
-          </button>
+          <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+            <div className="relative w-full md:w-64">
+              <input 
+                value={globalFilter || ''}
+                onChange={e => setGlobalFilter(e.target.value)} 
+                placeholder="Search leads..." 
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <svg 
+                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <button 
+              onClick={() => { 
+                setFormData({
+                  mobile: '', 
+                  called_date: new Date().toISOString().split('T')[0],
+                  id: null
+                }); 
+                setShowModal(true); 
+              }} 
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center transition-colors shadow-md"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span className="whitespace-nowrap">Add Lead</span>
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              {headerGroups.map(group => (
-                <tr {...group.getHeaderGroupProps()}>
-                  {group.headers.map(column => (
-                    <th 
-                      {...column.getHeaderProps(column.getSortByToggleProps())} 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      <div className="flex items-center">
-                        {column.render('Header')}
-                        {column.isSorted && (
-                          <span className="ml-1">
-                            {column.isSortedDesc ? '↓' : '↑'}
-                          </span>
-                        )}
-                      </div>
-                    </th>
+          <div className="inline-block min-w-full align-middle">
+            <div className="overflow-hidden">
+              <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  {headerGroups.map(group => (
+                    <tr {...group.getHeaderGroupProps()}>
+                      {group.headers.map(column => (
+                        <th 
+                          {...column.getHeaderProps(column.getSortByToggleProps())} 
+                          className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          <div className="flex items-center">
+                            {column.render('Header')}
+                            {column.isSorted && (
+                              <span className="ml-1">
+                                {column.isSortedDesc ? '↓' : '↑'}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
-              {page.map(row => {
-                prepareRow(row);
-                return (
-                  <tr {...row.getRowProps()} className="hover:bg-gray-50">
-                    {row.cells.map(cell => (
-                      <td {...cell.getCellProps()} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {cell.render('Cell')}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
+                  {page.map(row => {
+                    prepareRow(row);
+                    return (
+                      <tr {...row.getRowProps()} className="hover:bg-gray-50">
+                        {row.cells.map(cell => (
+                          <td 
+                            {...cell.getCellProps()} 
+                            className="px-3 py-4 whitespace-nowrap text-sm text-gray-500"
+                          >
+                            {cell.render('Cell')}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-4 flex justify-between items-center">
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <button 
             onClick={previousPage} 
             disabled={!previousPage}
-            className={`px-4 py-2 rounded-md ${previousPage ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+            className={`px-4 py-2 rounded-md flex items-center justify-center w-full sm:w-auto ${
+              previousPage 
+                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md' 
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+            }`}
           >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
             Previous
           </button>
           <button 
             onClick={nextPage} 
             disabled={!nextPage}
-            className={`px-4 py-2 rounded-md ${nextPage ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+            className={`px-4 py-2 rounded-md flex items-center justify-center w-full sm:w-auto ${
+              nextPage 
+                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md' 
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+            }`}
           >
             Next
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
       </div>
@@ -268,7 +297,7 @@ const LeadStatusPage = () => {
               <button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting}
-                className={`w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors ${
+                className={`w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors shadow-md ${
                   isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >

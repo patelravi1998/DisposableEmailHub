@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const LeadsPage = () => {
+export const LeadsPage = () => {
   const [data, setData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,7 +100,7 @@ const LeadsPage = () => {
     }
   }, []);
 
-  function calculateAge(dob :any) {
+  function calculateAge(dob: any) {
     if (!dob) return null;
     const birthDate = new Date(dob);
     const today = new Date();
@@ -109,14 +109,12 @@ const LeadsPage = () => {
     const monthDiff = today.getMonth() - birthDate.getMonth();
     const dayDiff = today.getDate() - birthDate.getDate();
   
-    // Adjust if birthday hasn't occurred yet this year
     if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
       age--;
     }
   
     return age >= 0 ? age : null;
   }
-  
 
   const handleSubmit = async () => {
     if (!formData.mobile) {
@@ -282,111 +280,115 @@ const LeadsPage = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-6">
-        <div className="flex justify-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800">Employer Details</h2>
-        </div>
-                  <div className="relative w-64">
-            <input 
-              value={globalFilter || ''}
-              onChange={e => setGlobalFilter(e.target.value)} 
-              placeholder="Search leads..." 
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <svg 
-              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="w-full md:w-auto text-center md:text-left">
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Employer Details</h2>
           </div>
-          <button 
-            onClick={() => { 
-              setFormData({
-                mobile: '',
-                is_whatsapp_number_same: 1,
-                whatsapp_number: '',
-                name: '',
-                dob: new Date().toISOString().split('T')[0],
-                age: '',
-                education: '',
-                state: '',
-                city: '',
-                past_job: '',
-                job_type: '',
-                willing_to_relocate: 1,
-                call_status: 1,
-                experience: 0,
-                id: null,
-                status_text: '',
-                follow_up_date: new Date().toISOString().split('T')[0],
-              });
-              setShowOtherJobType(false);
-              setShowModal(true); 
-            }} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center transition-colors shadow-md"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Add Lead
-          </button>
+          <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+            <div className="relative w-full md:w-64">
+              <input 
+                value={globalFilter || ''}
+                onChange={e => setGlobalFilter(e.target.value)} 
+                placeholder="Search leads..." 
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <svg 
+                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <button 
+              onClick={() => { 
+                setFormData({
+                  mobile: '',
+                  is_whatsapp_number_same: 1,
+                  whatsapp_number: '',
+                  name: '',
+                  dob: new Date().toISOString().split('T')[0],
+                  age: '',
+                  education: '',
+                  state: '',
+                  city: '',
+                  past_job: '',
+                  job_type: '',
+                  willing_to_relocate: 1,
+                  call_status: 1,
+                  experience: 0,
+                  id: null,
+                  status_text: '',
+                  follow_up_date: new Date().toISOString().split('T')[0],
+                });
+                setShowOtherJobType(false);
+                setShowModal(true); 
+              }} 
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center transition-colors shadow-md"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span className="whitespace-nowrap">Add Lead</span>
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full align-middle">
-            <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                {headerGroups.map(group => (
-                  <tr {...group.getHeaderGroupProps()}>
-                    {group.headers.map(column => (
-                      <th 
-                        {...column.getHeaderProps(column.getSortByToggleProps())} 
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        <div className="flex items-center space-x-1">
-                          {column.render('Header')}
-                          {column.isSorted && (
-                            <span className="text-gray-400">
-                              {column.isSortedDesc ? '↓' : '↑'}
-                            </span>
-                          )}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
-                {page.map(row => {
-                  prepareRow(row);
-                  return (
-                    <tr {...row.getRowProps()} className="hover:bg-gray-50 transition-colors">
-                      {row.cells.map(cell => (
-                        <td 
-                          {...cell.getCellProps()} 
-                          className="px-6 py-4 whitespace-nowrap text-sm"
+            <div className="overflow-hidden">
+              <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  {headerGroups.map(group => (
+                    <tr {...group.getHeaderGroupProps()}>
+                      {group.headers.map(column => (
+                        <th 
+                          {...column.getHeaderProps(column.getSortByToggleProps())} 
+                          className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
-                          {cell.render('Cell')}
-                        </td>
+                          <div className="flex items-center space-x-1">
+                            {column.render('Header')}
+                            {column.isSorted && (
+                              <span className="text-gray-400">
+                                {column.isSortedDesc ? '↓' : '↑'}
+                              </span>
+                            )}
+                          </div>
+                        </th>
                       ))}
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </thead>
+                <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
+                  {page.map(row => {
+                    prepareRow(row);
+                    return (
+                      <tr {...row.getRowProps()} className="hover:bg-gray-50 transition-colors">
+                        {row.cells.map(cell => (
+                          <td 
+                            {...cell.getCellProps()} 
+                            className="px-3 py-4 whitespace-nowrap text-sm"
+                          >
+                            {cell.render('Cell')}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 flex justify-between items-center">
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <button 
             onClick={previousPage} 
             disabled={!previousPage}
-            className={`px-4 py-2 rounded-md flex items-center ${
+            className={`px-4 py-2 rounded-md flex items-center justify-center w-full sm:w-auto ${
               previousPage 
                 ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md' 
                 : 'bg-gray-200 text-gray-500 cursor-not-allowed'
@@ -400,7 +402,7 @@ const LeadsPage = () => {
           <button 
             onClick={nextPage} 
             disabled={!nextPage}
-            className={`px-4 py-2 rounded-md flex items-center ${
+            className={`px-4 py-2 rounded-md flex items-center justify-center w-full sm:w-auto ${
               nextPage 
                 ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md' 
                 : 'bg-gray-200 text-gray-500 cursor-not-allowed'
@@ -423,7 +425,7 @@ const LeadsPage = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Mobile Number */}
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number*</label>
                 <input
                     placeholder="Enter mobile number"
@@ -438,37 +440,36 @@ const LeadsPage = () => {
 
               {/* WhatsApp Same */}
               <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Same WhatsApp Number?</label>
-              <select
-                value={formData.is_whatsapp_number_same}
-                onChange={e => {
-                  const val = Number(e.target.value); 
-                  setFormData(prev => ({
-                    ...prev,
-                    is_whatsapp_number_same: val,
-                    whatsapp_number: val === 1 ? prev.mobile : '' // auto-fill or clear
-                  }));
-                }}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                  <option value="">Select</option>
-                <option value={1}>Yes</option>
-                <option value={0}>No</option>
-              </select>
-            </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Same WhatsApp Number?</label>
+                <select
+                  value={formData.is_whatsapp_number_same}
+                  onChange={e => {
+                    const val = Number(e.target.value); 
+                    setFormData(prev => ({
+                      ...prev,
+                      is_whatsapp_number_same: val,
+                      whatsapp_number: val === 1 ? prev.mobile : '' // auto-fill or clear
+                    }));
+                  }}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">Select</option>
+                  <option value={1}>Yes</option>
+                  <option value={0}>No</option>
+                </select>
+              </div>
 
-            {/* WhatsApp Number (conditionally shown or auto-filled) */}
-            <div className="md:col-span-2 mt-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
-              <input
-                placeholder="Enter WhatsApp number"
-                value={formData.whatsapp_number}
-                onChange={e => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={formData.is_whatsapp_number_same === 1}
-              />
-            </div>
-
+              {/* WhatsApp Number (conditionally shown or auto-filled) */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
+                <input
+                  placeholder="Enter WhatsApp number"
+                  value={formData.whatsapp_number}
+                  onChange={e => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={formData.is_whatsapp_number_same === 1}
+                />
+              </div>
 
               {/* Name */}
               <div>
@@ -496,18 +497,17 @@ const LeadsPage = () => {
                 />
               </div>
 
-{/* Age */}
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-      <input
-        placeholder="Enter age"
-        value={formData.age}
-        onChange={e => setFormData({ ...formData, age: e.target.value })}
-        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        disabled // make age read-only since it's auto-calculated
-      />
-    </div>
-
+              {/* Age */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                <input
+                  placeholder="Enter age"
+                  value={formData.age}
+                  onChange={e => setFormData({ ...formData, age: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled // make age read-only since it's auto-calculated
+                />
+              </div>
 
               {/* Education */}
               <div>
@@ -598,7 +598,6 @@ const LeadsPage = () => {
                 </select>
               </div>
 
-
               {/* Call Status */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Call Status</label>
@@ -624,10 +623,6 @@ const LeadsPage = () => {
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-
-              {/* Follow-up Date */}
-
-              {/* Status Notes */}
             </div>
 
             <div className="pt-4">
