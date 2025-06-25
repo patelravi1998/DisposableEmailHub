@@ -41,8 +41,8 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
-          <Route path="/lead" element={<LeadsPage />} />
-          <Route path="/lead-status" element={<LeadStatusPage />} />
+          <Route path="/employer-details" element={<LeadsPage />} />
+          <Route path="/leads" element={<LeadStatusPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsAndConditions />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
