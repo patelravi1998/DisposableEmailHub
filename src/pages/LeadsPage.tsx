@@ -552,7 +552,7 @@ export const LeadsPage = () => {
                   value={formData.age}
                   onChange={e => setFormData({ ...formData, age: e.target.value })}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  disabled // make age read-only since it's auto-calculated
+                  // disabled // make age read-only since it's auto-calculated
                 />
               </div>
 
