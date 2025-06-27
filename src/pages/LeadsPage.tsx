@@ -82,6 +82,7 @@ export const LeadsPage = () => {
     { value: 'Security Guard', label: 'Security Guard' },
     { value: 'Labour (House)', label: 'Labour (House)' },
     { value: 'House Keeping', label: 'House Keeping' },
+    { value: 'Production Associate', label: 'Production Associate' },
     { value: 'Other', label: 'Other' },
   ];
 
